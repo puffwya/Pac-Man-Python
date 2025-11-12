@@ -27,8 +27,8 @@ GRAY = (150, 150, 150)
 # Player setup so that it fits nicely in the top left tile
 player_x = TILE_SIZE * 1.5
 player_y = TILE_SIZE * 1.5
-# TILE_SIZE // 2 - 4 makes the player slightly smaller than the tile but still nicely fit
-player_radius = TILE_SIZE // 2 - 4
+# TILE_SIZE // 2 - 1 makes the player slightly smaller than the tile but still nicely fit
+player_radius = TILE_SIZE // 2 - 1
 current_direction = None
 next_direction = None
 player_speed = 2
