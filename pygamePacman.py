@@ -1,0 +1,225 @@
+import pygame
+import sys
+import random
+from levels import ALL_LEVELS
+
+# Initialize Pygame
+pygame.init()
+
+# Screen setup
+TILE_SIZE = 30
+ROWS = 31
+COLS = 28
+
+# Determine screen height and width based on amount of rows, cols and tile size
+screen_width = COLS * TILE_SIZE
+screen_height = ROWS * TILE_SIZE
+
+screen = pygame.display.set_mode((screen_width, screen_height))
+
+# Colors
+BLACK = (0, 0, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+WHITE = (255, 255, 255)
+
+# Player setup so that it fits nicely in the top left tile
+player_x = TILE_SIZE * 1.5
+player_y = TILE_SIZE * 1.5
+# TILE_SIZE // 2 - 4 makes the player slightly smaller than the tile but still nicely fit
+player_radius = TILE_SIZE // 2 - 4
+current_direction = None
+next_direction = None
+player_speed = 2
+
+# --- Functions ---
+
+# Level generation function, randomly picks from one of the layouts
+def generate_level():
+    """
+    Return one of the prebuilt levels at random.
+    1 = wall, 0 = path
+    """
+    return random.choice(ALL_LEVELS)
+
+# Create the level
+level = generate_level()
+
+# Returns the current grid tile position based on x and y pixel locations on screen
+def get_grid_pos(x, y):
+    return int(y // TILE_SIZE), int(x // TILE_SIZE)
+
+# Checks if the given tile is walkable (not equal to 1)
+def is_walkable(row, col):
+    if 0 <= row < len(level) and 0 <= col < len(level[0]):
+        return level[row][col] != 1
+    return False
+
+# Queues a turn and excecutes it once Pac-Man is properly aligned within a tile
+def try_turn():
+    # Acess global movement and player state variables
+    global current_direction, next_direction, player_x, player_y
+
+    # If there is no queued direction (the player is not trying to turn, do nothing)
+    if not next_direction:
+        return
+
+    # Convert Pac-Man's curent pixel position into grid (row, column) coords
+    grid_row, grid_col = get_grid_pos(player_x, player_y)
+
+    # Calculate how far Pac-Man’s current position is offset within his current tile
+    # These offsets help us know when Pac-Man is centered enough to allow a clean turn
+    offset_x = player_x % TILE_SIZE
+    offset_y = player_y % TILE_SIZE
+
+
+    if next_direction == 'left' and offset_y == TILE_SIZE / 2:
+        if is_walkable(grid_row, grid_col - 1):
+            current_direction = 'left'
+            # Snap Pac-Man to the exact vertical center of the current tile for perfect alignment
+            player_y = grid_row * TILE_SIZE + TILE_SIZE / 2
+    elif next_direction == 'right' and offset_y == TILE_SIZE / 2:
+        if is_walkable(grid_row, grid_col + 1):
+            current_direction = 'right'
+            # Snap vertically to tile center
+            player_y = grid_row * TILE_SIZE + TILE_SIZE / 2
+    elif next_direction == 'up' and offset_x == TILE_SIZE / 2:
+        if is_walkable(grid_row - 1, grid_col):
+            current_direction = 'up'
+            # Snap horizontally to tile center
+            player_x = grid_col * TILE_SIZE + TILE_SIZE / 2
+    elif next_direction == 'down' and offset_x == TILE_SIZE / 2:
+        if is_walkable(grid_row + 1, grid_col):
+            current_direction = 'down'
+            # Snap horizontally to tile center
+            player_x = grid_col * TILE_SIZE + TILE_SIZE / 2
+
+# Helper function to snap Pac-Mans x and y coords into necessary location for move_pacman()
+def snap_to_tile_center(x, y):
+    grid_row, grid_col = get_grid_pos(x, y)
+    center_x = grid_col * TILE_SIZE + TILE_SIZE // 2
+    center_y = grid_row * TILE_SIZE + TILE_SIZE // 2
+    return center_x, center_y
+
+
+# Check if Pac-Man's edge (radius) will hit a wall next frame
+def will_hit_wall(x, y, direction):
+    row, col = get_grid_pos(x, y)
+
+    if direction == 'left':
+        check_x = x - player_radius - player_speed
+        check_col = int(check_x // TILE_SIZE)
+        return level[row][check_col] == 1
+    elif direction == 'right':
+        check_x = x + player_radius + player_speed
+        check_col = int(check_x // TILE_SIZE)
+        try:
+            return level[row][check_col] == 1
+        except IndexError:
+            return False
+    elif direction == 'up':
+        check_y = y - player_radius - player_speed
+        check_row = int(check_y // TILE_SIZE)
+        return level[check_row][col] == 1
+    elif direction == 'down':
+        check_y = y + player_radius + player_speed
+        check_row = int(check_y // TILE_SIZE)
+        return level[check_row][col] == 1
+    return False
+
+def move_pacman():
+    global player_x, player_y, current_direction
+
+    if current_direction == 'left':
+        if will_hit_wall(player_x, player_y, 'left'):
+            player_x, player_y = snap_to_tile_center(player_x, player_y)
+            current_direction = None
+        else:
+            player_x -= player_speed
+
+    elif current_direction == 'right':
+        if will_hit_wall(player_x, player_y, 'right'):
+            player_x, player_y = snap_to_tile_center(player_x, player_y)
+            current_direction = None
+        else:
+            player_x += player_speed
+
+    elif current_direction == 'up':
+        if will_hit_wall(player_x, player_y, 'up'):
+            player_x, player_y = snap_to_tile_center(player_x, player_y)
+            current_direction = None
+        else:
+            player_y -= player_speed
+
+    elif current_direction == 'down':
+        if will_hit_wall(player_x, player_y, 'down'):
+            player_x, player_y = snap_to_tile_center(player_x, player_y)
+            current_direction = None
+        else:
+            player_y += player_speed
+
+def handle_warp():
+    global player_x
+    if player_x < 0:
+        player_x = (len(level[0]) - 1) * TILE_SIZE + TILE_SIZE / 2
+    elif player_x > len(level[0]) * TILE_SIZE:
+        player_x = TILE_SIZE / 2
+
+clock = pygame.time.Clock()
+
+# Game loop
+running = True
+while running:
+
+    # Events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Black background
+    screen.fill(BLACK)
+
+    # Draw level and pellets
+    # Get each row in level
+    for row in range(len(level)):
+	# Get each col in each row
+        for col in range(len(level[row])):
+	    # Converts the grid coordinates (row, col) into pixel coordinates on the screen (x, y)
+	    # Each cell in the grid is a square of size TILE_SIZE so multiplying by TILE_SIZE places each 
+	    # cell in the correct spot i.e. 1 = 40, 2 = 80...
+            x = col * TILE_SIZE
+            y = row * TILE_SIZE
+
+            if level[row][col] == 1:
+                # Draw wall
+                pygame.draw.rect(screen, BLUE, (x, y, TILE_SIZE, TILE_SIZE))
+            elif level[row][col] == 0:
+                # Draw pellet in center of open cell
+                pellet_radius = 4
+                pygame.draw.circle(screen, WHITE, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), pellet_radius)
+
+
+    # Input
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        next_direction = 'left'
+    elif keys[pygame.K_RIGHT]:
+        next_direction = 'right'
+    elif keys[pygame.K_UP]:
+        next_direction = 'up'
+    elif keys[pygame.K_DOWN]:
+        next_direction = 'down'
+
+    # Movement logic
+    try_turn()
+    move_pacman()
+    handle_warp()
+
+    # Draw Pac-Man (player)
+    pygame.draw.circle(screen, YELLOW, (int(player_x), int(player_y)), player_radius)
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
+sys.exit()
