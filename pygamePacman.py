@@ -22,6 +22,7 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
+GRAY = (150, 150, 150)
 
 # Player setup so that it fits nicely in the top left tile
 player_x = TILE_SIZE * 1.5
@@ -45,14 +46,24 @@ def generate_level():
 # Create the level
 level = generate_level()
 
-# Returns the current grid tile position based on x and y pixel locations on screen
+# Helper function to return the current grid tile position based on x and y pixel locations on screen
 def get_grid_pos(x, y):
     return int(y // TILE_SIZE), int(x // TILE_SIZE)
 
-# Checks if the given tile is walkable (not equal to 1)
+# Helper function to snap Pac-Mans x and y coords into necessary location for move_pacman()
+def snap_to_tile_center(x, y):
+    grid_row, grid_col = get_grid_pos(x, y)
+    center_x = grid_col * TILE_SIZE + TILE_SIZE // 2
+    center_y = grid_row * TILE_SIZE + TILE_SIZE // 2
+    return center_x, center_y
+
+# Checks if the given tile is walkable (not equal to 1 or 3)
 def is_walkable(row, col):
     if 0 <= row < len(level) and 0 <= col < len(level[0]):
-        return level[row][col] != 1
+        if level[row][col] == 3:
+            return False
+        else: 
+            return level[row][col] != 1
     return False
 
 # Queues a turn and excecutes it once Pac-Man is properly aligned within a tile
@@ -94,14 +105,6 @@ def try_turn():
             # Snap horizontally to tile center
             player_x = grid_col * TILE_SIZE + TILE_SIZE / 2
 
-# Helper function to snap Pac-Mans x and y coords into necessary location for move_pacman()
-def snap_to_tile_center(x, y):
-    grid_row, grid_col = get_grid_pos(x, y)
-    center_x = grid_col * TILE_SIZE + TILE_SIZE // 2
-    center_y = grid_row * TILE_SIZE + TILE_SIZE // 2
-    return center_x, center_y
-
-
 # Check if Pac-Man's edge (radius) will hit a wall next frame
 def will_hit_wall(x, y, direction):
     row, col = get_grid_pos(x, y)
@@ -127,6 +130,7 @@ def will_hit_wall(x, y, direction):
         return level[check_row][col] == 1
     return False
 
+# Moves Pac-Man until he hits a wall, then stops him and snaps his position to tile center
 def move_pacman():
     global player_x, player_y, current_direction
 
@@ -158,6 +162,8 @@ def move_pacman():
         else:
             player_y += player_speed
 
+# Handles warp functionality, if player leaves left side of screen get sent to right side - 1 tile, if leaves right 
+# side get sent to left side + 1 tile
 def handle_warp():
     global player_x
     if player_x < 0:
@@ -190,13 +196,16 @@ while running:
             x = col * TILE_SIZE
             y = row * TILE_SIZE
 
-            if level[row][col] == 1:
-                # Draw wall
-                pygame.draw.rect(screen, BLUE, (x, y, TILE_SIZE, TILE_SIZE))
-            elif level[row][col] == 0:
+            if level[row][col] == 0:
                 # Draw pellet in center of open cell
                 pellet_radius = 4
                 pygame.draw.circle(screen, WHITE, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), pellet_radius)
+            elif level[row][col] == 1:
+                # Draw wall
+                pygame.draw.rect(screen, BLUE, (x, y, TILE_SIZE, TILE_SIZE))
+            elif level[row][col] == 3:
+                # Draw Ghost Door
+                pygame.draw.rect(screen, GRAY, (x, y, TILE_SIZE, TILE_SIZE))
 
 
     # Input
