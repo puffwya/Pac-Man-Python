@@ -1,14 +1,16 @@
 import pygame
 import sys
 import random
-from levels import ALL_LEVELS
+import math
+from levels import ALL_LEVELS, LEVEL_1, LEVEL_2
 
 # Initialize Pygame
 pygame.init()
 
 # Initialize and create a font object
 pygame.font.init()
-pacman_font = pygame.font.Font("Grand9K Pixel.ttf", 30)
+score_font = pygame.font.Font("Grand9K Pixel.ttf", 30)
+ready_font = pygame.font.Font("Grand9K Pixel.ttf", 20)
 
 # Screen setup
 TILE_SIZE = 30
@@ -21,13 +23,21 @@ screen_height = ROWS * TILE_SIZE
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 
+# Game start variables
+game_start = True
+game_start_timer = 0
+GAME_START_DURATION = 240  # frames, e.g., 2 seconds at 60 FPS
+chosen_lvl = None
+
 # Colors
 BLACK = (0, 0, 0)
-WALL_BLUE = (33, 33, 222)
+WALL_BLUE = (25, 25, 166)
+POWER_PELLET_GHOST_BLUE = (33, 33, 222)
 YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
 GRAY = (255, 184, 255)
 PEACH = (222, 161, 133)
+CYAN = (0, 255, 255)
 
 # Power Pellet "Blinking" Variables
 power_pellet_flipper = True
@@ -37,12 +47,20 @@ last_pellet_blink = pygame.time.get_ticks()
 # Player setup so that it fits nicely in the top left tile
 player_x = TILE_SIZE * 1.5
 player_y = TILE_SIZE * 1.5
-# TILE_SIZE // 2 - 1 makes the player slightly smaller than the tile but still nicely fit
+# TILE_SIZE // 2 - 1 makes the player slightly smaller than the tile but still nicely fit 
 player_radius = TILE_SIZE // 2 - 1
 current_direction = None
 next_direction = None
 player_speed = 2
 player_score = 0
+
+# Pac-Man Mouth state
+PACMAN_FRAMES = [0, 20, 50]  # mouth fully closed, partially open, fully open
+pacman_frame_index = 0
+pacman_frame_tick = 0
+PACMAN_FRAME_DELAY = 2  # change frame every 2 game ticks
+start = 0
+end = 0
 
 # MIN SCORES FOR LEVEL COMPLETION
 lvl1MinScore = 2500
@@ -56,14 +74,43 @@ def generate_level():
     Return one of the prebuilt levels at random.
     1 = wall, 0 = path
     """
-    return random.choice(ALL_LEVELS)
+    global chosen_lvl
+    if random.choice(ALL_LEVELS) == LEVEL_1:
+        chosen_lvl = 1
+        return LEVEL_1
+    else:
+        chosen_lvl = 2
+        return LEVEL_2
 
 # Create the level
 level = generate_level()
 
-# Helper function to return the current grid tile position based on x and y pixel locations on screen
+# Helper function to return the grid tile position based on x and y pixel locations given to funciton
 def get_grid_pos(x, y):
     return int(y // TILE_SIZE), int(x // TILE_SIZE)
+
+# Helper function to return the pixel position based on row and col positions given to function
+def get_pixel_pos(row, col):
+    x = col * TILE_SIZE + TILE_SIZE // 2
+    y = row * TILE_SIZE + TILE_SIZE // 2
+    return x, y
+
+# Helper function to stretch text (higher scale = more stretch)
+def render_stretched_text(text, color, font, scale_x=2.0, scale_y=1.0):
+    # Render normal text
+    text_surface = font.render(text, True, color)
+
+    # Original size
+    w, h = text_surface.get_size()
+
+    # Compute stretched size
+    new_w = int(w * scale_x)
+    new_h = int(h * scale_y)
+
+    # Stretch using smoothscale (best quality)
+    stretched_surface = pygame.transform.smoothscale(text_surface, (new_w, new_h))
+
+    return stretched_surface
 
 # Helper function to snap Pac-Mans x and y coords into necessary location for move_pacman()
 def snap_to_tile_center(x, y):
@@ -186,6 +233,48 @@ def handle_warp():
     elif player_x > len(level[0]) * TILE_SIZE:
         player_x = TILE_SIZE / 2
 
+def draw_pacman_frame(surface, mouth_angle, direction):
+    global player_radius, player_x, player_y, start, end
+    
+    offset_x = -player_radius-1  # shift left by radius for centering
+    offset_y = -player_radius-1  # shift up by radius for centering
+        
+    center_x = player_x + TILE_SIZE // 2 + offset_x
+    center_y = player_y + TILE_SIZE // 2 + offset_y
+    center = (center_x, center_y)
+
+    a = math.radians(mouth_angle)
+
+    # Direction determines mouth orientation
+    if direction == "right":
+        start = -a
+        end = a
+    elif direction == "left":
+        start = math.pi - a
+        end = math.pi + a 
+    elif direction == "up":
+        start = 1.5 * math.pi - a
+        end = 1.5 * math.pi + a
+    elif direction == "down":
+        start = 0.5 * math.pi - a
+        end = 0.5 * math.pi + a
+
+    # Draw full circle
+    pygame.draw.circle(surface, YELLOW, center, player_radius)
+
+    # Mouth cutout: approximate wedge with multiple points along the arc
+    if mouth_angle > 0:
+        num_points = 10
+        points = [center]
+        for i in range(num_points + 1):
+            angle = start + (end - start) * (i / num_points)
+            x = center[0] + player_radius * math.cos(angle)
+            y = center[1] + player_radius * math.sin(angle)
+            points.append((x, y))
+
+        pygame.draw.polygon(surface, BLACK, points)
+
+
 clock = pygame.time.Clock()
 
 # Checks if the current tile pacman is on is a pellet or not, sets tile to 2, adds to score, and removes 
@@ -198,13 +287,13 @@ def is_current_tile_pellet():
     if level[grid_row][grid_col] == 0:
         player_score += 10
         level[grid_row][grid_col] = 2
+        return
     # Checks if power pellet
     elif level[grid_row][grid_col] == 4:
         player_score += 50
         level[grid_row][grid_col] = 2
-    else:
         return
-
+    return
 
 # Game loop
 running = True
@@ -217,6 +306,11 @@ while running:
 
     # Black background
     screen.fill(BLACK)
+
+    # Events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
     # Draw level and pellets
     # Get each row in level
@@ -277,38 +371,70 @@ while running:
 
                 pygame.draw.circle(screen, color,(x + TILE_SIZE // 2, y + TILE_SIZE // 2),power_pellet_radius)
 
-    # Keeps track of time passed and flips power_pellet_flipper to create a "blinking" effect for power pellets
-    # Occurs once every 200 milliseconds
-    current_time = pygame.time.get_ticks()
-    if current_time - last_pellet_blink > POWER_PELLET_BLINK_INTERVAL:
-        power_pellet_flipper = not power_pellet_flipper
-        last_pellet_blink = current_time
+    if game_start:
+        if chosen_lvl == 1:
+            game_start_timer += 1
+            row, col = get_pixel_pos(13,10)
 
-    # Input
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT]:
-        next_direction = 'left'
-    elif keys[pygame.K_RIGHT]:
-        next_direction = 'right'
-    elif keys[pygame.K_UP]:
-        next_direction = 'up'
-    elif keys[pygame.K_DOWN]:
-        next_direction = 'down'
+            # "Player One" text
+            PLAYER_ONE = render_stretched_text("PLAYER  ONE", CYAN, ready_font, scale_x=1.6)
+            player_one_rect = PLAYER_ONE.get_rect(center=(col + TILE_SIZE // 2, row))
+            screen.blit(PLAYER_ONE, player_one_rect)
+    
+            # "READY!" text below
+            READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
+            offset = TILE_SIZE * 5
+            ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+            screen.blit(READY, ready_rect)  
+        
+            # After the duration, exit start state
+            if game_start_timer >= GAME_START_DURATION:
+                game_start = False
+        else:
+            game_start = False
 
-    # Check for pellet (base or power)
-    is_current_tile_pellet()
+    else:
 
-    # Movement logic    
-    try_turn()
-    move_pacman()
-    handle_warp()
+        current_time = pygame.time.get_ticks()
 
-    # Draw Pac-Man (player)
-    pygame.draw.circle(screen, YELLOW, (int(player_x), int(player_y)), player_radius)
+        # Keeps track of time passed and flips power_pellet_flipper to create a "blinking" effect for power pellets
+        # Occurs once every 200 milliseconds
+        if current_time - last_pellet_blink > POWER_PELLET_BLINK_INTERVAL:
+            power_pellet_flipper = not power_pellet_flipper
+            last_pellet_blink = current_time
 
-    # Draw Score
-    score = pacman_font.render("Score: " + str(player_score), True, WHITE)
-    screen.blit(score, (20,screen_height-120))
+        # Input
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            next_direction = 'left'
+        elif keys[pygame.K_RIGHT]:
+            next_direction = 'right'
+        elif keys[pygame.K_UP]:
+            next_direction = 'up'
+        elif keys[pygame.K_DOWN]:
+            next_direction = 'down'
+
+        # Check for pellet (base or power)
+        is_current_tile_pellet()
+
+        # Movement logic    
+        try_turn()
+        move_pacman()
+        handle_warp()
+
+        # Animate Pac-Man (player)
+        if current_direction is not None:
+            pacman_frame_tick += 1
+            if pacman_frame_tick >= PACMAN_FRAME_DELAY:
+                pacman_frame_tick = 0
+                pacman_frame_index = (pacman_frame_index + 1) % len(PACMAN_FRAMES)
+
+        # Draw Pac-Man
+        draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
+
+        # Draw Score
+        score = score_font.render("Score: " + str(player_score), True, WHITE)
+        screen.blit(score, (20,screen_height-120))
 
     pygame.display.flip()
     clock.tick(60)
