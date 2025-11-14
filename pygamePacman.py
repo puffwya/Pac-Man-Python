@@ -6,6 +6,10 @@ from levels import ALL_LEVELS
 # Initialize Pygame
 pygame.init()
 
+# Initialize and create a font object
+pygame.font.init()
+pacman_font = pygame.font.Font("Grand9K Pixel.ttf", 30)
+
 # Screen setup
 TILE_SIZE = 30
 ROWS = 31
@@ -19,10 +23,16 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 
 # Colors
 BLACK = (0, 0, 0)
-BLUE = (0, 0, 255)
+WALL_BLUE = (33, 33, 222)
 YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
-GRAY = (150, 150, 150)
+GRAY = (255, 184, 255)
+PEACH = (222, 161, 133)
+
+# Power Pellet "Blinking" Variables
+power_pellet_flipper = True
+POWER_PELLET_BLINK_INTERVAL = 200 # milliseconds
+last_pellet_blink = pygame.time.get_ticks()
 
 # Player setup so that it fits nicely in the top left tile
 player_x = TILE_SIZE * 1.5
@@ -32,6 +42,7 @@ player_radius = TILE_SIZE // 2 - 1
 current_direction = None
 next_direction = None
 player_speed = 2
+player_score = 0
 
 # --- Functions ---
 
@@ -173,6 +184,26 @@ def handle_warp():
 
 clock = pygame.time.Clock()
 
+# Checks if the current tile pacman is on is a pellet or not, sets tile to 2, adds to score, and removes 
+# pellet if so. Does nothing if not.
+def is_current_tile_pellet():
+    global player_x, player_y, player_score
+    grid_row, grid_col = get_grid_pos(player_x, player_y)
+
+    # Checks if base pellet
+    if level[grid_row][grid_col] == 0:
+        player_score += 10
+        level[grid_row][grid_col] = 2
+        pygame.draw.circle(screen, BLACK, (player_x + TILE_SIZE // 2, player_y + TILE_SIZE // 2), pellet_radius)
+    # Checks if power pellet
+    elif level[grid_row][grid_col] == 4:
+        player_score += 50
+        level[grid_row][grid_col] = 2
+        pygame.draw.circle(screen, BLACK, (player_x + TILE_SIZE // 2, player_y + TILE_SIZE // 2),power_pellet_radius)
+    else:
+        return
+
+
 # Game loop
 running = True
 while running:
@@ -198,15 +229,58 @@ while running:
 
             if level[row][col] == 0:
                 # Draw pellet in center of open cell
-                pellet_radius = 4
-                pygame.draw.circle(screen, WHITE, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), pellet_radius)
+                pellet_radius = TILE_SIZE // 2 - 12
+                pygame.draw.circle(screen, PEACH, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), pellet_radius)
             elif level[row][col] == 1:
-                # Draw wall
-                pygame.draw.rect(screen, BLUE, (x, y, TILE_SIZE, TILE_SIZE))
+
+                # --- Check corners ---
+
+                # Top-left rounded corner
+                if is_walkable(row-1, col) and is_walkable(row, col-1):
+                    pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_top_left_radius=10,
+            border_top_right_radius=0,
+            border_bottom_left_radius=0,
+            border_bottom_right_radius=0)
+                # Top-right rounded corner
+                elif is_walkable(row-1, col) and is_walkable(row, col+1):
+                    pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_top_right_radius=10,
+            border_top_left_radius=0,
+            border_bottom_left_radius=0,
+            border_bottom_right_radius=0)
+                # Bottom-left
+                elif is_walkable(row+1, col) and is_walkable(row, col-1):
+                    pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_bottom_left_radius=10,
+            border_top_left_radius=0,
+            border_top_right_radius=0,
+            border_bottom_right_radius=0)
+                # Bottom-right
+                elif is_walkable(row+1, col) and is_walkable(row, col+1):
+                    pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_bottom_right_radius=10,
+            border_top_left_radius=0,
+            border_top_right_radius=0,
+            border_bottom_left_radius=0)
+                else:
+                    # Draw wall with no rounded edges
+                    pygame.draw.rect(screen, WALL_BLUE, (x, y, TILE_SIZE, TILE_SIZE))
             elif level[row][col] == 3:
                 # Draw Ghost Door
-                pygame.draw.rect(screen, GRAY, (x, y, TILE_SIZE, TILE_SIZE))
+                pygame.draw.rect(screen, GRAY, (x, y, TILE_SIZE, TILE_SIZE//4))
+            elif level[row][col] == 4:
+                # Draw pellet in center of open cell
+                power_pellet_radius = TILE_SIZE // 2 - 5
+                if power_pellet_flipper:
+                    color = PEACH
+                else:
+                    color = BLACK
 
+                pygame.draw.circle(screen, color,(x + TILE_SIZE // 2, y + TILE_SIZE // 2),power_pellet_radius)
+
+    # Keeps track of time passed and flips power_pellet_flipper to create a "blinking" effect for power pellets
+    # Occurs once every 200 milliseconds
+    current_time = pygame.time.get_ticks()
+    if current_time - last_pellet_blink > POWER_PELLET_BLINK_INTERVAL:
+        power_pellet_flipper = not power_pellet_flipper
+        last_pellet_blink = current_time
 
     # Input
     keys = pygame.key.get_pressed()
@@ -219,13 +293,20 @@ while running:
     elif keys[pygame.K_DOWN]:
         next_direction = 'down'
 
-    # Movement logic
+    # Check for pellet (base or power)
+    is_current_tile_pellet()
+
+    # Movement logic    
     try_turn()
     move_pacman()
     handle_warp()
 
     # Draw Pac-Man (player)
     pygame.draw.circle(screen, YELLOW, (int(player_x), int(player_y)), player_radius)
+
+    # Draw Score
+    score = pacman_font.render("Score: " + str(player_score), True, WHITE)
+    screen.blit(score, (20,screen_height-120))
 
     pygame.display.flip()
     clock.tick(60)
