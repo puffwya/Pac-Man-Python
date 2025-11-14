@@ -44,6 +44,10 @@ next_direction = None
 player_speed = 2
 player_score = 0
 
+# MIN SCORES FOR LEVEL COMPLETION
+lvl1MinScore = 2500
+lvl2MinScore = 2380
+
 # --- Functions ---
 
 # Level generation function, randomly picks from one of the layouts
@@ -194,12 +198,10 @@ def is_current_tile_pellet():
     if level[grid_row][grid_col] == 0:
         player_score += 10
         level[grid_row][grid_col] = 2
-        pygame.draw.circle(screen, BLACK, (player_x + TILE_SIZE // 2, player_y + TILE_SIZE // 2), pellet_radius)
     # Checks if power pellet
     elif level[grid_row][grid_col] == 4:
         player_score += 50
         level[grid_row][grid_col] = 2
-        pygame.draw.circle(screen, BLACK, (player_x + TILE_SIZE // 2, player_y + TILE_SIZE // 2),power_pellet_radius)
     else:
         return
 
