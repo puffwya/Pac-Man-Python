@@ -12,6 +12,9 @@ pygame.font.init()
 score_font = pygame.font.Font("Grand9K Pixel.ttf", 30)
 ready_font = pygame.font.Font("Grand9K Pixel.ttf", 20)
 
+# Initialize mixer
+pygame.mixer.init()
+
 # Screen setup
 TILE_SIZE = 30
 ROWS = 31
@@ -28,6 +31,8 @@ game_start = True
 game_start_timer = 0
 GAME_START_DURATION = 240  # frames, e.g., 2 seconds at 60 FPS
 chosen_lvl = None
+pygame.mixer.music.load("sounds/Pac-Man starting sound effect.mp3")
+play_once = True
 
 # Colors
 BLACK = (0, 0, 0)
@@ -39,14 +44,15 @@ GRAY = (255, 184, 255)
 PEACH = (222, 161, 133)
 CYAN = (0, 255, 255)
 
+# Sound variables
+waka_sound = pygame.mixer.Sound("sounds/PacmanWakaWaka04.mp3")
+
 # Power Pellet "Blinking" Variables
 power_pellet_flipper = True
 POWER_PELLET_BLINK_INTERVAL = 200 # milliseconds
 last_pellet_blink = pygame.time.get_ticks()
 
-# Player setup so that it fits nicely in the top left tile
-player_x = TILE_SIZE * 1.5
-player_y = TILE_SIZE * 1.5
+# Player setup so that Pac-Man fits nicely in the path
 # TILE_SIZE // 2 - 1 makes the player slightly smaller than the tile but still nicely fit 
 player_radius = TILE_SIZE // 2 - 1
 current_direction = None
@@ -63,8 +69,8 @@ start = 0
 end = 0
 
 # MIN SCORES FOR LEVEL COMPLETION
-lvl1MinScore = 2500
-lvl2MinScore = 2380
+lvl1MinScore = 2490
+lvl2MinScore = 2370
 
 # --- Functions ---
 
@@ -84,6 +90,13 @@ def generate_level():
 
 # Create the level
 level = generate_level()
+
+if chosen_lvl == 1:
+    player_x = TILE_SIZE * 13.5
+    player_y = TILE_SIZE * 20.5
+elif chosen_lvl == 2:
+    player_x = TILE_SIZE * 13.5
+    player_y = TILE_SIZE * 19.5
 
 # Helper function to return the grid tile position based on x and y pixel locations given to funciton
 def get_grid_pos(x, y):
@@ -287,11 +300,13 @@ def is_current_tile_pellet():
     if level[grid_row][grid_col] == 0:
         player_score += 10
         level[grid_row][grid_col] = 2
+        waka_sound.play()
         return
     # Checks if power pellet
     elif level[grid_row][grid_col] == 4:
         player_score += 50
         level[grid_row][grid_col] = 2
+        waka_sound.play()
         return
     return
 
@@ -372,27 +387,61 @@ while running:
                 pygame.draw.circle(screen, color,(x + TILE_SIZE // 2, y + TILE_SIZE // 2),power_pellet_radius)
 
     if game_start:
+        if play_once:
+            pygame.mixer.music.play()
+            play_once = False
         if chosen_lvl == 1:
             game_start_timer += 1
             row, col = get_pixel_pos(13,10)
 
-            # "Player One" text
-            PLAYER_ONE = render_stretched_text("PLAYER  ONE", CYAN, ready_font, scale_x=1.6)
-            player_one_rect = PLAYER_ONE.get_rect(center=(col + TILE_SIZE // 2, row))
-            screen.blit(PLAYER_ONE, player_one_rect)
+            if game_start_timer <= 120:
+                # "Player One" text
+                PLAYER_ONE = render_stretched_text("PLAYER  ONE", CYAN, ready_font, scale_x=1.6)
+                player_one_rect = PLAYER_ONE.get_rect(center=(col + TILE_SIZE // 2, row))
+                screen.blit(PLAYER_ONE, player_one_rect)
     
-            # "READY!" text below
-            READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
-            offset = TILE_SIZE * 5
-            ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
-            screen.blit(READY, ready_rect)  
-        
+                # "READY!" text below
+                READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
+                offset = TILE_SIZE * 5
+                ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                screen.blit(READY, ready_rect)  
+            elif game_start_timer >= 120:
+                # "READY!" text below
+                READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
+                offset = TILE_SIZE * 5
+                ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                screen.blit(READY, ready_rect)
+                # Draw Pac-Man
+                draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
             # After the duration, exit start state
             if game_start_timer >= GAME_START_DURATION:
                 game_start = False
-        else:
-            game_start = False
-
+        elif chosen_lvl == 2:
+            game_start_timer += 1
+            row, col = get_pixel_pos(13,10)
+            
+            if game_start_timer <= 120:
+                # "Player One" text   
+                PLAYER_ONE = render_stretched_text("PLAYER  ONE", CYAN, ready_font, scale_x=1.6)
+                player_one_rect = PLAYER_ONE.get_rect(center=(col + TILE_SIZE // 2, row))
+                screen.blit(PLAYER_ONE, player_one_rect)
+        
+                # "READY!" text below  
+                READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
+                offset = TILE_SIZE * 6
+                ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                screen.blit(READY, ready_rect)
+            elif game_start_timer >= 120:
+                # "READY!" text below
+                READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
+                offset = TILE_SIZE * 6
+                ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                screen.blit(READY, ready_rect)
+                # Draw Pac-Man   
+                draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
+            # After the duration, exit start state
+            if game_start_timer >= GAME_START_DURATION:
+                game_start = False
     else:
 
         current_time = pygame.time.get_ticks()
