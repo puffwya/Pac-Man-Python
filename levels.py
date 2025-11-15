@@ -1,3 +1,5 @@
+import random
+
 # Hand drawn pacman esque levels
 # 4 == Power Pellets, 3 == Ghost Door, 2 == open space where pellets do not go
 # 1 == walls, 0 == open space where small pellets go
@@ -68,3 +70,17 @@ LEVEL_2 = [
 ]
 
 ALL_LEVELS = [LEVEL_1, LEVEL_2]
+
+# Level generation function, randomly picks from one of the layouts
+def generate_level():
+    """
+    Return one of the prebuilt levels at random.
+    1 = wall, 0 = path
+    """
+    global chosen_lvl
+    if random.choice(ALL_LEVELS) == LEVEL_1:
+        chosen_lvl = 1
+        return LEVEL_1, chosen_lvl
+    else:
+        chosen_lvl = 2
+        return LEVEL_2, chosen_lvl
