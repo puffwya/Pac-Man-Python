@@ -28,6 +28,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 
 # Lives and Score
 player_score = 0 
+eaten_pellets = 0
 player_lives = 5
 
 # Game start variables
@@ -38,6 +39,7 @@ chosen_lvl = None
 pygame.mixer.music.load("sounds/Pac-Man starting sound effect.mp3")
 play_once = True
 init_spawn = True
+g_siren_start = True
 
 # Colors
 BLACK = (0, 0, 0)
@@ -73,6 +75,19 @@ start = 0
 end = 0
 startL = 0
 endL = 0
+
+# Ghost directional variables
+red_direction = "left"          # current movement direction
+red_last_dir = "left"           # needed to prevent reversing
+    
+pink_direction = "down"
+pink_last_dir = "down"
+        
+blue_direction = "up"
+blue_last_dir = "up"
+        
+orange_direction = "up"
+orange_last_dir = "up"
 
 # MIN SCORES FOR LEVEL COMPLETION
 lvl1MinScore = 2490

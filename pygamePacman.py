@@ -1,5 +1,10 @@
 from settings import *
 
+# Global Frightened State
+frightened_mode = False  
+frightened_timer = 0.0
+FRIGHTENED_DURATION = 7.0  # seconds
+
 # --- Functions ---
 
 # Level generation function, randomly picks from one of the layouts
@@ -218,22 +223,382 @@ def draw_pacman_frame(surface, mouth_angle, direction):
 # Checks if the current tile pacman is on is a pellet or not, sets tile to 2, adds to score, and removes 
 # pellet if so. Does nothing if not.
 def is_current_tile_pellet():
-    global player_x, player_y, player_score, waka_flip
+    global player_x, player_y, player_score, waka_flip, eaten_pellets, red_direction, pink_direction, blue_direction, orange_direction
     grid_row, grid_col = get_grid_pos(player_x, player_y)
 
     # Checks if base pellet
     if level[grid_row][grid_col] == 0:
         player_score += 10
+        eaten_pellets += 1
         level[grid_row][grid_col] = 2
         waka_sound.play()
         return True
     # Checks if power pellet
     elif level[grid_row][grid_col] == 4:
         player_score += 50
+        eaten_pellets += 1
         level[grid_row][grid_col] = 2
         waka_sound.play()
+
+        # Activate frightened mode
+        frightened_mode = True
+        frightened_timer = 0.0
+
+        # Reverse ghost directions immediately
+        red_direction = {"up":"down","down":"up","left":"right","right":"left"}[red_direction]
+        pink_direction = {"up":"down","down":"up","left":"right","right":"left"}[pink_direction]
+        blue_direction = {"up":"down","down":"up","left":"right","right":"left"}[blue_direction]
+        orange_direction = {"up":"down","down":"up","left":"right","right":"left"}[orange_direction]
+
         return True
+
     return False
+
+# --- Ghost Setup ---
+
+num_frames = 2  # number of frames in the ghost animation
+scale_factor = TILE_SIZE // 12 - 0.1
+
+# --- Ghost State Variables ---
+
+# Red ghost starting position
+red_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
+red_ghost_y = TILE_SIZE * 10 + TILE_SIZE/2
+
+# Pink ghost starting position
+pink_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
+pink_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+
+# Blue ghost starting position   
+blue_ghost_x = TILE_SIZE * 12 + TILE_SIZE/2
+blue_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+
+# Orange ghost starting positions
+orange_ghost_x = TILE_SIZE * 14 + TILE_SIZE/2
+orange_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+
+# movement speed
+ghost_speed = 1.0
+
+# mode management
+ghost_mode = "scatter"            # can be "scatter", or "chase"
+ghost_mode_timer = 0
+ghost_mode_index = 0
+MODE_CYCLE = [
+    ("scatter", 7),
+    ("chase", 20)
+]
+
+# Load ghost frames into a list
+
+# Red ghost sprites
+red_ghost_up = []
+red_ghost_down = []
+red_ghost_left = []
+red_ghost_right = []
+
+for i in range(num_frames):
+    img = pygame.image.load(f"sprites/red-ghost-up-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    red_ghost_up.append(img)
+    img = pygame.image.load(f"sprites/red-ghost-down-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    red_ghost_down.append(img)
+    img = pygame.image.load(f"sprites/red-ghost-left-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    red_ghost_left.append(img)
+    img = pygame.image.load(f"sprites/red-ghost-right-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    red_ghost_right.append(img)
+
+
+red_ghost_sprites = {
+    "up": red_ghost_up,
+    "down": red_ghost_down,
+    "left": red_ghost_left,
+    "right": red_ghost_right
+}
+
+# Blue ghost sprites
+blue_ghost_up = []
+blue_ghost_down = []
+blue_ghost_left = []
+blue_ghost_right = []
+
+for i in range(num_frames):
+    img = pygame.image.load(f"sprites/blue-ghost-up-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    blue_ghost_up.append(img)
+    img = pygame.image.load(f"sprites/blue-ghost-down-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    blue_ghost_down.append(img)
+    img = pygame.image.load(f"sprites/blue-ghost-left-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    blue_ghost_left.append(img)
+    img = pygame.image.load(f"sprites/blue-ghost-right-{i}.png").convert_alpha()
+    w, h = img.get_size()  
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    blue_ghost_right.append(img)
+    
+                    
+blue_ghost_sprites = {
+    "up": blue_ghost_up,
+    "down": blue_ghost_down,
+    "left": blue_ghost_left,
+    "right": blue_ghost_right
+}
+    
+# Pink ghost sprites
+pink_ghost_up = []
+pink_ghost_down = []
+pink_ghost_left = []
+pink_ghost_right = []
+
+for i in range(num_frames):
+    img = pygame.image.load(f"sprites/pink-ghost-up-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    pink_ghost_up.append(img)
+    img = pygame.image.load(f"sprites/pink-ghost-down-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    pink_ghost_down.append(img)
+    img = pygame.image.load(f"sprites/pink-ghost-left-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    pink_ghost_left.append(img)
+    img = pygame.image.load(f"sprites/pink-ghost-right-{i}.png").convert_alpha()
+    w, h = img.get_size()   
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    pink_ghost_right.append(img)
+    
+
+pink_ghost_sprites = {
+    "up": pink_ghost_up,
+    "down": pink_ghost_down,
+    "left": pink_ghost_left,
+    "right": pink_ghost_right
+}
+    
+# Orange ghost sprites
+orange_ghost_up = []
+orange_ghost_down = []
+orange_ghost_left = []
+orange_ghost_right = []
+orange_direction = 'up'
+
+for i in range(num_frames):
+    img = pygame.image.load(f"sprites/orange-ghost-up-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    orange_ghost_up.append(img)
+    img = pygame.image.load(f"sprites/orange-ghost-down-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    orange_ghost_down.append(img)
+    img = pygame.image.load(f"sprites/orange-ghost-left-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    orange_ghost_left.append(img)
+    img = pygame.image.load(f"sprites/orange-ghost-right-{i}.png").convert_alpha()
+    w, h = img.get_size()  
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    orange_ghost_right.append(img)
+
+orange_ghost_sprites = {
+    "up": orange_ghost_up,  
+    "down": orange_ghost_down, 
+    "left": orange_ghost_left,
+    "right": orange_ghost_right
+}
+
+# Scared (power pellet) ghost sprites
+scared_ghost = []
+
+for i in range(num_frames):
+    img = pygame.image.load(f"sprites/scared-ghost-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    scared_ghost.append(img)
+
+# Ghost animation control
+ghost_frame_index = 0
+GHOST_FRAME_DELAY = 5  # update every 5 game ticks
+ghost_frame_tick = 0
+
+# tolerance for float comparisons (pixels)
+CENTER_EPS = 0.001
+
+# Helper to check if the ghost is centered
+def is_ghost_centered(pixel_coord):
+    """Return True if the ghost is (nearly) in the tile center on that axis.
+       Expect tile centers to be at TILE_SIZE * n + TILE_SIZE/2.
+    """
+    return abs((pixel_coord % TILE_SIZE) - (TILE_SIZE / 2)) < CENTER_EPS
+
+# Helper to snap ghost back to tile center
+def snap_ghost_to_center(px, py):
+    """Snap given pixel coords to exact tile center and return (x, y)."""
+    r, c = get_grid_pos(px, py)
+    cx = c * TILE_SIZE + TILE_SIZE / 2
+    cy = r * TILE_SIZE + TILE_SIZE / 2
+    return cx, cy
+
+# Helper to get next tile in ghost_current_direction
+def get_next_tile(row, col, direction):
+    if direction == "up":
+        return (row - 1, col)
+    elif direction == "down":
+        return (row + 1, col)
+    elif direction == "left":
+        return (row, col - 1)
+    elif direction == "right":
+        return (row, col + 1)
+
+# Helper to check if next tile is walkable for ghosts
+def is_direction_walkable(row, col, direction):
+    nr, nc = get_next_tile(row, col, direction)
+    if 0 <= nr < len(level) and 0 <= nc < len(level[0]):
+        return level[nr][nc] != 1
+    return False
+
+# Gets Blinky's target tile
+def get_red_target():
+    global player_x, player_y
+    if ghost_mode == "chase":
+        pac_r, pac_c = get_grid_pos(player_x, player_y)
+        return (pac_r, pac_c)
+    elif ghost_mode == "scatter":
+        return (0, COLS-1)
+
+# Gets Pinky's target tile
+def get_pink_target():
+    global current_direction, player_x, player_y
+    pac_r, pac_c = get_grid_pos(player_x, player_y)
+
+    # Pac-Man's facing direction
+    d = current_direction  # "up", "down", "left", "right"
+
+    if ghost_mode == "chase":
+        # Offset according to original behavior
+        if d == "up":
+            return (pac_r - 4, pac_c - 4)
+        elif d == "down":
+            return (pac_r + 4, pac_c)
+        elif d == "left":
+            return (pac_r, pac_c - 4)
+        elif d == "right":
+            return (pac_r, pac_c + 4)
+        # fallback
+        return (pac_r, pac_c)
+    elif ghost_mode == "scatter":
+        return (0, 0)
+
+# Gets Inky's target tile
+def get_blue_target(blinky_x, blinky_y):
+    global current_direction, player_x, player_y
+    if ghost_mode == "chase":
+        # Step 1: Pac-Man's offset tile (2 ahead)
+        pac_r, pac_c = get_grid_pos(player_x, player_y)
+        d = current_direction
+
+        if d == "up":
+            target_r = pac_r - 2
+            target_c = pac_c - 2  # ORIGINAL BUG — includes left shift
+        elif d == "down":
+            target_r = pac_r + 2
+            target_c = pac_c
+        elif d == "left":
+            target_r = pac_r
+            target_c = pac_c - 2
+        else:
+            target_r = pac_r
+            target_c = pac_c + 2
+
+        # Step 2: Blinky’s tile
+        bl_r, bl_c = get_grid_pos(blinky_x, blinky_y)
+
+        # Step 3: Vector from Blinky to the offset tile
+        vec_r = target_r - bl_r
+        vec_c = target_c - bl_c
+
+        # Step 4: Double it
+        final_r = bl_r + 2 * vec_r
+        final_c = bl_c + 2 * vec_c
+
+        return (final_r, final_c)
+    elif ghost_mode == "scatter":
+        return(ROWS-1, COLS-1)
+
+
+def get_orange_target(clyde_x, clyde_y):
+    global player_x, player_y
+    pac_r, pac_c = get_grid_pos(player_x, player_y)
+    cy_r, cy_c = get_grid_pos(clyde_x, clyde_y)
+
+    dist_sq = (pac_r - cy_r)**2 + (pac_c - cy_c)**2
+
+    if dist_sq >= 64:  # 8 tiles squared
+        return (pac_r, pac_c)  # chase
+    else:
+        return (ROWS-1, 0)     # scatter corner
+
+def target_frightened(ghost_x, ghost_y):
+    row, col = get_grid_pos(ghost_x, ghost_y)
+    possible = []
+
+    for d in ["up","left","down","right"]:
+        if is_direction_walkable(row, col, d):
+            possible.append(d)
+    
+    if possible:
+        return get_next_tile(row, col, random.choice(possible))
+    else:
+        return (row, col)
+
+# Chooses ghosts direction based on their specific target tile
+def choose_ghost_direction(ghost_x, ghost_y, ghost_current_direction, target):
+    # ensure we have a valid starting direction
+    if ghost_current_direction is None:
+        ghost_current_direction = "left"  # or any sensible default
+
+    row, col = get_grid_pos(ghost_x, ghost_y)
+    opposite = {"up":"down", "down":"up", "left":"right", "right":"left"}
+
+    possible = []
+    for d in ["up", "left", "down", "right"]:   # tie-break order (Up, Left, Down, Right)
+        # avoid reversing unless it's the only option
+        if d == opposite.get(ghost_current_direction):
+            continue
+        if is_direction_walkable(row, col, d):
+            possible.append(d)
+
+    # if no possible moves (dead end), allow reverse
+    if not possible:
+        rev = opposite.get(ghost_current_direction)
+        if rev and is_direction_walkable(row, col, rev):
+            return rev
+        # if still nothing, just keep current (should not happen)
+        return ghost_current_direction
+
+    # choose direction minimizing distance to target (squared distance)
+    best_dir = ghost_current_direction
+    best_dist = float("inf")
+    for d in possible:
+        nr, nc = get_next_tile(row, col, d)
+        dist = (nr - target[0])**2 + (nc - target[1])**2
+        if dist < best_dist:
+            best_dist = dist
+            best_dir = d
+
+    return best_dir
 
 clock = pygame.time.Clock()
 
@@ -343,6 +708,7 @@ while running:
     if game_start:
         if play_once:
             pygame.mixer.music.play()
+            
             play_once = False
         if chosen_lvl == 1:
             game_start_timer += 1
@@ -402,7 +768,30 @@ while running:
             # After the duration, exit start state
             if game_start_timer >= GAME_START_DURATION:
                 game_start = False
+    # If not in "Game Intro" state, run the following
     else:
+
+        # Plays ghost siren only once so it does not keep playing
+        if player_score < 800:
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.load("sounds/ghost_siren1.mp3")
+                pygame.mixer.music.play()
+        elif eaten_pellets >= 50 and eaten_pellets < 100:
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.load("sounds/ghost_siren2.mp3")
+                pygame.mixer.music.play()
+        elif eaten_pellets >= 100 and eaten_pellets < 150:
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.load("sounds/ghost_siren3.mp3")
+                pygame.mixer.music.play()
+        elif eaten_pellets >= 150 and eaten_pellets < 200:
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.load("sounds/ghost_siren4.mp3")
+                pygame.mixer.music.play()
+        elif eaten_pellets >= 200 and eaten_pellets < 235:
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.load("sounds/ghost_siren5.mp3")
+                pygame.mixer.music.play()
 
         current_time = pygame.time.get_ticks()
 
@@ -472,6 +861,278 @@ while running:
             pygame.draw.polygon(screen, BLACK, points)
 
         screen.blit(score, (20,screen_height-120))
+
+        # --- Ghost mode timer ---
+        dt = clock.get_time() / 1000.0  # convert ms → seconds
+
+        if frightened_mode:
+            frightened_timer += dt
+            
+            # --- Red Ghost Movement ---
+            if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                # SNAP to center so rounding errors don't build up
+                red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+                
+                target = target_frightened(red_ghost_x, red_ghost_y)
+                red_direction = choose_ghost_direction(red_ghost_x, red_ghost_y, red_direction, target)
+                
+            # Move ghost by direction
+            if red_direction == "up":
+                red_ghost_y -= ghost_speed
+            elif red_direction == "down":
+                red_ghost_y += ghost_speed
+            elif red_direction == "left":
+                red_ghost_x -= ghost_speed
+            elif red_direction == "right":
+                red_ghost_x += ghost_speed  
+                
+                
+            # After moving, if ghost is now very close to the target tile center, snap to exact center
+            if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+
+            # --- Blue Ghost Movement ---
+            if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                # SNAP to center so rounding errors don't build up
+                blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+                
+                target = target_frightened(blue_ghost_x, blue_ghost_y)
+                blue_direction = choose_ghost_direction(blue_ghost_x, blue_ghost_y, blue_direction, target)
+                
+            # Move ghost by direction
+            if blue_direction == "up":
+                blue_ghost_y -= ghost_speed
+            elif blue_direction == "down":
+                blue_ghost_y += ghost_speed
+            elif blue_direction == "left":
+                blue_ghost_x -= ghost_speed
+            elif blue_direction == "right":
+                blue_ghost_x += ghost_speed  
+                
+                
+            # After moving, if ghost is now very close to the target tile center, snap to exact center
+            if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+
+            # --- Pink Ghost Movement ---
+            if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                # SNAP to center so rounding errors don't build up
+                pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+                
+                target = target_frightened(pink_ghost_x, pink_ghost_y)
+                pink_direction = choose_ghost_direction(pink_ghost_x, pink_ghost_y, pink_direction, target)
+                
+            # Move ghost by direction
+            if pink_direction == "up":
+                pink_ghost_y -= ghost_speed
+            elif pink_direction == "down":
+                pink_ghost_y += ghost_speed
+            elif pink_direction == "left":
+                pink_ghost_x -= ghost_speed
+            elif pink_direction == "right":
+                pink_ghost_x += ghost_speed  
+                
+                
+            # After moving, if ghost is now very close to the target tile center, snap to exact center
+            if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+
+            # --- Orange Ghost Movement ---
+            if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                # SNAP to center so rounding errors don't build up
+                orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
+                
+                target = target_frightened(orange_ghost_x, orange_ghost_y)
+                orange_direction = choose_ghost_direction(orange_ghost_x, orange_ghost_y, orange_direction, target)
+                
+            # Move ghost by direction
+            if orange_direction == "up":
+                orange_ghost_y -= ghost_speed
+            elif orange_direction == "down":
+                orange_ghost_y += ghost_speed
+            elif orange_direction == "left":
+                orange_ghost_x -= ghost_speed
+            elif orange_direction == "right":
+                orange_ghost_x += ghost_speed  
+                
+                
+            # After moving, if ghost is now very close to the target tile center, snap to exact center
+            if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)            
+
+            # Draws frightened mode
+            frame = scared_ghost[ghost_frame_index]
+            draw_x = red_ghost_x - frame.get_width()/2
+            draw_y = red_ghost_y - frame.get_height()/2
+            screen.blit(frame, (draw_x, draw_y))
+            
+            draw_x = blue_ghost_x - frame.get_width()/2
+            draw_y = blue_ghost_y - frame.get_height()/2
+            screen.blit(frame, (draw_x, draw_y))
+            
+            draw_x = pink_ghost_x - frame.get_width()/2
+            draw_y = pink_ghost_y - frame.get_height()/2
+            screen.blit(frame, (draw_x, draw_y))
+            
+            draw_x = orange_ghost_x - frame.get_width()/2 
+            draw_y = orange_ghost_y - frame.get_height()/2
+            screen.blit(frame, (draw_x, draw_y))
+
+            if frightened_timer >= FRIGHTENED_DURATION:
+                frightened_mode = False
+                frightened_timer = 0.0
+                # resume normal scatter/chase mode
+                ghost_mode_timer = 0
+        else:
+
+            ghost_mode_timer += dt
+
+            # Get current mode + duration
+            ghost_mode, duration = MODE_CYCLE[ghost_mode_index]
+
+            # Check for mode switch
+            if ghost_mode_timer >= duration:
+                ghost_mode_timer = 0
+
+                # Advance to next mode
+                ghost_mode_index += 1
+
+                # Loop back to 0 if we reached the end
+                if ghost_mode_index >= len(MODE_CYCLE):
+                    ghost_mode_index = 0
+                
+                # Update active mode
+                ghost_mode, _ = MODE_CYCLE[ghost_mode_index]
+
+
+
+            # --- Red Ghost Movement ---
+            if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                # SNAP to center so rounding errors don't build up
+                red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+
+                target = get_red_target()
+                red_direction = choose_ghost_direction(red_ghost_x, red_ghost_y, red_direction, target)
+
+            # Move ghost by direction
+            if red_direction == "up":
+                red_ghost_y -= ghost_speed
+            elif red_direction == "down":
+                red_ghost_y += ghost_speed
+            elif red_direction == "left":
+                red_ghost_x -= ghost_speed
+            elif red_direction == "right":
+                red_ghost_x += ghost_speed
+
+
+            # After moving, if ghost is now very close to the target tile center, snap to exact center
+            if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+
+            # --- Pink Ghost Movement ---
+            if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                # SNAP to center so rounding errors don't build up
+                pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+            
+                target = get_pink_target()
+                pink_direction = choose_ghost_direction(pink_ghost_x, pink_ghost_y, pink_direction, target)
+        
+            # Move ghost by direction 
+            if pink_direction == "up":
+                pink_ghost_y -= ghost_speed
+            elif pink_direction == "down":
+                pink_ghost_y += ghost_speed
+            elif pink_direction == "left":
+                pink_ghost_x -= ghost_speed
+            elif pink_direction == "right":
+                pink_ghost_x += ghost_speed  
+            
+    
+            # After moving, if ghost is now very close to the target tile center, snap to exact center
+            if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+
+            # --- Blue Ghost Movement ---
+            if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                # SNAP to center so rounding errors don't build up
+                blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+        
+                target = get_blue_target(red_ghost_x, red_ghost_y)
+                blue_direction = choose_ghost_direction(blue_ghost_x, blue_ghost_y, blue_direction, target)
+        
+            # Move ghost by direction
+            if blue_direction == "up":
+                blue_ghost_y -= ghost_speed
+            elif blue_direction == "down":
+                blue_ghost_y += ghost_speed
+            elif blue_direction == "left":
+                blue_ghost_x -= ghost_speed
+            elif blue_direction == "right":
+                blue_ghost_x += ghost_speed
+        
+        
+            # After moving, if ghost is now very close to the target tile center, snap to exact center
+            if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+
+
+            # --- Orange Ghost Movement ---
+            if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                # SNAP to center so rounding errors don't build up
+                orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
+        
+                target = get_orange_target(orange_ghost_x, orange_ghost_y)
+                orange_direction = choose_ghost_direction(orange_ghost_x, orange_ghost_y, orange_direction, target)
+        
+            # Move ghost by direction
+            if orange_direction == "up":
+                orange_ghost_y -= ghost_speed
+            elif orange_direction == "down":
+                orange_ghost_y += ghost_speed
+            elif orange_direction == "left":
+                orange_ghost_x -= ghost_speed
+            elif orange_direction == "right":
+                orange_ghost_x += ghost_speed
+            
+            
+            # After moving, if ghost is now very close to the target tile center, snap to exact center
+            if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
+
+            # Draw normally
+            # --- Draw red ghost ---
+            r_ghost_frames = red_ghost_sprites[red_direction]
+            frame = r_ghost_frames[ghost_frame_index]
+            draw_x = red_ghost_x - frame.get_width()/2
+            draw_y = red_ghost_y - frame.get_height()/2
+            screen.blit(frame, (draw_x, draw_y))
+                
+            # --- Draw blue ghost ---
+            b_ghost_frames = blue_ghost_sprites[blue_direction]   
+            frame = b_ghost_frames[ghost_frame_index]
+            draw_x = blue_ghost_x - frame.get_width()/2
+            draw_y = blue_ghost_y - frame.get_height()/2
+            screen.blit(frame, (draw_x, draw_y))
+                
+            # --- Draw pink ghost ---
+            p_ghost_frames = pink_ghost_sprites[pink_direction]
+            frame = p_ghost_frames[ghost_frame_index]
+            draw_x = pink_ghost_x - frame.get_width()/2
+            draw_y = pink_ghost_y - frame.get_height()/2
+            screen.blit(frame, (draw_x, draw_y))
+                
+            # --- Draw Orange ghost ---
+            o_ghost_frames = orange_ghost_sprites[orange_direction]
+            frame = o_ghost_frames[ghost_frame_index]
+            draw_x = orange_ghost_x - frame.get_width()/2
+            draw_y = orange_ghost_y - frame.get_height()/2
+            screen.blit(frame, (draw_x, draw_y))
+
+        # --- Update ghost animations ---
+        ghost_frame_tick += 1
+        if ghost_frame_tick >= GHOST_FRAME_DELAY:
+            ghost_frame_tick = 0
+            ghost_frame_index = (ghost_frame_index + 1) % 2
 
     pygame.display.flip()
     clock.tick(60)
