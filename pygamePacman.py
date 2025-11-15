@@ -26,6 +26,10 @@ screen_height = ROWS * TILE_SIZE
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 
+# Lives and Score
+player_score = 0 
+player_lives = 5
+
 # Game start variables
 game_start = True
 game_start_timer = 0
@@ -33,6 +37,7 @@ GAME_START_DURATION = 240  # frames, e.g., 2 seconds at 60 FPS
 chosen_lvl = None
 pygame.mixer.music.load("sounds/Pac-Man starting sound effect.mp3")
 play_once = True
+init_spawn = True
 
 # Colors
 BLACK = (0, 0, 0)
@@ -45,7 +50,7 @@ PEACH = (222, 161, 133)
 CYAN = (0, 255, 255)
 
 # Sound variables
-waka_sound = pygame.mixer.Sound("sounds/PacmanWakaWaka04.mp3")
+waka_sound = pygame.mixer.Sound("sounds/PacmanWaka.mp3")
 
 # Power Pellet "Blinking" Variables
 power_pellet_flipper = True
@@ -58,7 +63,6 @@ player_radius = TILE_SIZE // 2 - 1
 current_direction = None
 next_direction = None
 player_speed = 2
-player_score = 0
 
 # Pac-Man Mouth state
 PACMAN_FRAMES = [0, 20, 50]  # mouth fully closed, partially open, fully open
@@ -67,6 +71,8 @@ pacman_frame_tick = 0
 PACMAN_FRAME_DELAY = 2  # change frame every 2 game ticks
 start = 0
 end = 0
+startL = 0
+endL = 0
 
 # MIN SCORES FOR LEVEL COMPLETION
 lvl1MinScore = 2490
@@ -293,7 +299,7 @@ clock = pygame.time.Clock()
 # Checks if the current tile pacman is on is a pellet or not, sets tile to 2, adds to score, and removes 
 # pellet if so. Does nothing if not.
 def is_current_tile_pellet():
-    global player_x, player_y, player_score
+    global player_x, player_y, player_score, waka_flip
     grid_row, grid_col = get_grid_pos(player_x, player_y)
 
     # Checks if base pellet
@@ -301,14 +307,14 @@ def is_current_tile_pellet():
         player_score += 10
         level[grid_row][grid_col] = 2
         waka_sound.play()
-        return
+        return True
     # Checks if power pellet
     elif level[grid_row][grid_col] == 4:
         player_score += 50
         level[grid_row][grid_col] = 2
         waka_sound.play()
-        return
-    return
+        return True
+    return False
 
 # Game loop
 running = True
@@ -386,6 +392,33 @@ while running:
 
                 pygame.draw.circle(screen, color,(x + TILE_SIZE // 2, y + TILE_SIZE // 2),power_pellet_radius)
 
+    # Draw Pac-Man lives near bottom of screen
+        for life in range(player_lives):
+                
+            # The circle center you actually draw:
+            circle_center = (30 + TILE_SIZE * life, screen_height - 50)
+                
+            # Draw Pac-Man body
+            pygame.draw.circle(screen, YELLOW, circle_center, player_radius)
+                
+            # Mouth angles (always facing right for lives)
+            a = math.radians(40)
+            startL = math.pi - a
+            endL = math.pi + a
+                
+            # Build mouth wedge polygon
+            num_points = 12
+            points = [circle_center]  # start at center of the circle
+    
+            for i in range(num_points + 1):
+                angle = startL + (endL - startL) * (i / num_points)
+                x = circle_center[0] + player_radius * math.cos(angle)
+                y = circle_center[1] + player_radius * math.sin(angle)
+                points.append((x, y))
+        
+            # Draw the wedge
+            pygame.draw.polygon(screen, BLACK, points)
+
     if game_start:
         if play_once:
             pygame.mixer.music.play()
@@ -411,6 +444,9 @@ while running:
                 offset = TILE_SIZE * 5
                 ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
                 screen.blit(READY, ready_rect)
+                if init_spawn == True:
+                    player_lives -= 1
+                    init_spawn = False
                 # Draw Pac-Man
                 draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
             # After the duration, exit start state
@@ -437,6 +473,9 @@ while running:
                 offset = TILE_SIZE * 6
                 ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
                 screen.blit(READY, ready_rect)
+                if init_spawn == True:  
+                    player_lives -= 1
+                    init_spawn = False
                 # Draw Pac-Man   
                 draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
             # After the duration, exit start state
@@ -483,6 +522,34 @@ while running:
 
         # Draw Score
         score = score_font.render("Score: " + str(player_score), True, WHITE)
+
+        # Draw Pac-Man lives near bottom of screen
+        for life in range(player_lives):
+            
+            # The circle center you actually draw:
+            circle_center = (30 + TILE_SIZE * life, screen_height - 50)  
+                    
+            # Draw Pac-Man body
+            pygame.draw.circle(screen, YELLOW, circle_center, player_radius)
+            
+            # Mouth angles (always facing right for lives)
+            a = math.radians(40)
+            startL = math.pi - a
+            endL = math.pi + a
+            
+            # Build mouth wedge polygon 
+            num_points = 12
+            points = [circle_center]  # start at center of the circle
+                    
+            for i in range(num_points + 1):
+                angle = startL + (endL - startL) * (i / num_points)
+                x = circle_center[0] + player_radius * math.cos(angle)
+                y = circle_center[1] + player_radius * math.sin(angle)
+                points.append((x, y))
+                
+            # Draw the wedge
+            pygame.draw.polygon(screen, BLACK, points)
+
         screen.blit(score, (20,screen_height-120))
 
     pygame.display.flip()
