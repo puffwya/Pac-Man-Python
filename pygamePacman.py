@@ -4,6 +4,10 @@ from settings import *
 frightened_mode = False  
 frightened_timer = 0.0
 FRIGHTENED_DURATION = 7.0  # seconds
+FRIGHTENED_FLASH_INTERVAL = 200  # seconds before frightened ends
+#FLASH_INTERVAL = 0.3  # seconds per color switch
+flashing_frightened_flipper = True
+last_ghost_flash = pygame.time.get_ticks()
 
 # --- Functions ---
 
@@ -223,7 +227,7 @@ def draw_pacman_frame(surface, mouth_angle, direction):
 # Checks if the current tile pacman is on is a pellet or not, sets tile to 2, adds to score, and removes 
 # pellet if so. Does nothing if not.
 def is_current_tile_pellet():
-    global player_x, player_y, player_score, waka_flip, eaten_pellets, red_direction, pink_direction, blue_direction, orange_direction
+    global player_x, player_y, player_score, waka_flip, eaten_pellets, red_direction, pink_direction, blue_direction, orange_direction, frightened_mode, frightened_timer
     grid_row, grid_col = get_grid_pos(player_x, player_y)
 
     # Checks if base pellet
@@ -428,6 +432,15 @@ for i in range(num_frames):
     img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
     scared_ghost.append(img)
 
+# White scared (power pellet) ghost sprites
+white_scared_ghost = []
+    
+for i in range(num_frames):
+    img = pygame.image.load(f"sprites/white-scared-ghost-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    white_scared_ghost.append(img)
+
 # Ghost animation control
 ghost_frame_index = 0
 GHOST_FRAME_DELAY = 5  # update every 5 game ticks
@@ -606,11 +619,6 @@ clock = pygame.time.Clock()
 running = True
 while running:
 
-    # Events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
     # Black background
     screen.fill(BLACK)
 
@@ -770,36 +778,49 @@ while running:
                 game_start = False
     # If not in "Game Intro" state, run the following
     else:
-
-        # Plays ghost siren only once so it does not keep playing
-        if player_score < 800:
+  
+        if frightened_mode:
             if not pygame.mixer.music.get_busy():
-                pygame.mixer.music.load("sounds/ghost_siren1.mp3")
+                pygame.mixer.music.load("sounds/frightenedMode.mp3")
                 pygame.mixer.music.play()
-        elif eaten_pellets >= 50 and eaten_pellets < 100:
-            if not pygame.mixer.music.get_busy():
-                pygame.mixer.music.load("sounds/ghost_siren2.mp3")
-                pygame.mixer.music.play()
-        elif eaten_pellets >= 100 and eaten_pellets < 150:
-            if not pygame.mixer.music.get_busy():
-                pygame.mixer.music.load("sounds/ghost_siren3.mp3")
-                pygame.mixer.music.play()
-        elif eaten_pellets >= 150 and eaten_pellets < 200:
-            if not pygame.mixer.music.get_busy():
-                pygame.mixer.music.load("sounds/ghost_siren4.mp3")
-                pygame.mixer.music.play()
-        elif eaten_pellets >= 200 and eaten_pellets < 235:
-            if not pygame.mixer.music.get_busy():
-                pygame.mixer.music.load("sounds/ghost_siren5.mp3")
-                pygame.mixer.music.play()
+        else:
+            # Plays ghost siren only once so it does not keep playing
+            if player_score < 800:
+                if not pygame.mixer.music.get_busy():
+                    pygame.mixer.music.load("sounds/ghost_siren1.mp3")
+                    pygame.mixer.music.play()
+            elif eaten_pellets >= 50 and eaten_pellets < 100:
+                if not pygame.mixer.music.get_busy():
+                    pygame.mixer.music.load("sounds/ghost_siren2.mp3")
+                    pygame.mixer.music.play()
+            elif eaten_pellets >= 100 and eaten_pellets < 150:
+                if not pygame.mixer.music.get_busy():
+                    pygame.mixer.music.load("sounds/ghost_siren3.mp3")
+                    pygame.mixer.music.play()
+            elif eaten_pellets >= 150 and eaten_pellets < 200:
+                if not pygame.mixer.music.get_busy():
+                    pygame.mixer.music.load("sounds/ghost_siren4.mp3")
+                    pygame.mixer.music.play()
+            elif eaten_pellets >= 200 and eaten_pellets < 235:
+                if not pygame.mixer.music.get_busy():
+                    pygame.mixer.music.load("sounds/ghost_siren5.mp3")
+                    pygame.mixer.music.play()
 
         current_time = pygame.time.get_ticks()
+
+        
 
         # Keeps track of time passed and flips power_pellet_flipper to create a "blinking" effect for power pellets
         # Occurs once every 200 milliseconds
         if current_time - last_pellet_blink > POWER_PELLET_BLINK_INTERVAL:
             power_pellet_flipper = not power_pellet_flipper
             last_pellet_blink = current_time
+
+        # Keeps track of time passed and flips flashing_frightened_flipper to create a "flashing" effect for ghosts
+        # Occurs once every 300 milliseconds
+        if current_time - last_ghost_flash > FRIGHTENED_FLASH_INTERVAL:
+            flashing_frightened_flipper = not flashing_frightened_flipper
+            last_ghost_flash = current_time
 
         # Input
         keys = pygame.key.get_pressed()
@@ -960,23 +981,61 @@ while running:
             if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
                 orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)            
 
-            # Draws frightened mode
-            frame = scared_ghost[ghost_frame_index]
-            draw_x = red_ghost_x - frame.get_width()/2
-            draw_y = red_ghost_y - frame.get_height()/2
-            screen.blit(frame, (draw_x, draw_y))
+            if frightened_timer < 4:
+                # Draws normal frightened mode
+                frame = scared_ghost[ghost_frame_index]
+                draw_x = red_ghost_x - frame.get_width()/2
+                draw_y = red_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
             
-            draw_x = blue_ghost_x - frame.get_width()/2
-            draw_y = blue_ghost_y - frame.get_height()/2
-            screen.blit(frame, (draw_x, draw_y))
+                draw_x = blue_ghost_x - frame.get_width()/2
+                draw_y = blue_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
             
-            draw_x = pink_ghost_x - frame.get_width()/2
-            draw_y = pink_ghost_y - frame.get_height()/2
-            screen.blit(frame, (draw_x, draw_y))
+                draw_x = pink_ghost_x - frame.get_width()/2
+                draw_y = pink_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
             
-            draw_x = orange_ghost_x - frame.get_width()/2 
-            draw_y = orange_ghost_y - frame.get_height()/2
-            screen.blit(frame, (draw_x, draw_y))
+                draw_x = orange_ghost_x - frame.get_width()/2 
+                draw_y = orange_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+            elif frightened_timer >= 4 and flashing_frightened_flipper:
+                # Draws white ghost
+                frame = white_scared_ghost[ghost_frame_index]
+                draw_x = red_ghost_x - frame.get_width()/2
+                draw_y = red_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+            
+                draw_x = blue_ghost_x - frame.get_width()/2
+                draw_y = blue_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+                
+                draw_x = pink_ghost_x - frame.get_width()/2
+                draw_y = pink_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+            
+                draw_x = orange_ghost_x - frame.get_width()/2
+                draw_y = orange_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+            elif frightened_timer >= 4 and not flashing_frightened_flipper:
+                # Draws blue ghost    
+                frame = scared_ghost[ghost_frame_index]
+                draw_x = red_ghost_x - frame.get_width()/2
+                draw_y = red_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+            
+                draw_x = blue_ghost_x - frame.get_width()/2
+                draw_y = blue_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+            
+                draw_x = pink_ghost_x - frame.get_width()/2
+                draw_y = pink_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+            
+                draw_x = orange_ghost_x - frame.get_width()/2
+                draw_y = orange_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+
 
             if frightened_timer >= FRIGHTENED_DURATION:
                 frightened_mode = False
