@@ -1,3 +1,4 @@
+import copy
 from settings import *
 
 # Global Frightened State
@@ -20,10 +21,18 @@ def generate_level():
     global chosen_lvl
     if random.choice(ALL_LEVELS) == LEVEL_1:
         chosen_lvl = 1
-        return LEVEL_1
+        return copy.deepcopy(LEVEL_1)
     else:
         chosen_lvl = 2
-        return LEVEL_2
+        return copy.deepcopy(LEVEL_2)
+
+def count_pellets(level_grid):
+    count = 0
+    for row in level_grid:
+        for tile in row:
+            if tile == 0:   # pellet tile
+                count += 1
+    return count
 
 # Create the level
 level = generate_level()
@@ -31,9 +40,11 @@ level = generate_level()
 if chosen_lvl == 1:
     player_x = TILE_SIZE * 13.5
     player_y = TILE_SIZE * 20.5
+    # print(count_pellets(level))
 elif chosen_lvl == 2:
     player_x = TILE_SIZE * 13.5
     player_y = TILE_SIZE * 19.5
+    # print(count_pellets(level))
 
 # Helper function to return the grid tile position based on x and y pixel locations given to funciton
 def get_grid_pos(x, y):
@@ -503,8 +514,15 @@ def is_direction_walkable(row, col, direction):
 
 # Gets Blinky's target tile
 def get_red_target(rg_eyes):
-    global player_x, player_y
-    if rg_eyes:
+    global player_x, player_y, red_ghost_x, red_ghost_y
+
+    # Convert ghost pixel positions into grid coords
+    r_row, r_col = get_grid_pos(red_ghost_x, red_ghost_y) 
+
+    if near_center_reg(r_row, r_col) and not rg_eyes:
+        r_ghost_speed = 1 
+        return (8, 13)
+    elif rg_eyes:
         r_ghost_speed = 2
         center_row = len(level) // 2
         center_col = len(level[0]) // 2
@@ -519,13 +537,19 @@ def get_red_target(rg_eyes):
 
 # Gets Pinky's target tile
 def get_pink_target(pg_eyes):
-    global current_direction, player_x, player_y
+    global current_direction, player_x, player_y, pink_ghost_x, pink_ghost_y
     pac_r, pac_c = get_grid_pos(player_x, player_y)
 
     # Pac-Man's facing direction
     d = current_direction  # "up", "down", "left", "right"
 
-    if pg_eyes:
+    # Convert ghost pixel positions into grid coords
+    p_row, p_col = get_grid_pos(pink_ghost_x, pink_ghost_y)
+
+    if near_center_reg(p_row, p_col) and not pg_eyes:
+        p_ghost_speed = 1
+        return (8, 14)
+    elif pg_eyes:
         p_ghost_speed = 2
         center_row = len(level) // 2   
         center_col = len(level[0]) // 2
@@ -549,8 +573,15 @@ def get_pink_target(pg_eyes):
 
 # Gets Inky's target tile
 def get_blue_target(blinky_x, blinky_y, bg_eyes):
-    global current_direction, player_x, player_y
-    if bg_eyes:
+    global current_direction, player_x, player_y, blue_ghost_x, blue_ghost_y
+
+    # Convert ghost pixel positions into grid coords
+    b_row, b_col = get_grid_pos(blue_ghost_x, blue_ghost_y)
+
+    if near_center_reg(b_row, b_col) and not bg_eyes:
+        b_ghost_speed = 1
+        return(8, 14)
+    elif bg_eyes:
         b_ghost_speed = 2
         center_row = len(level) // 2   
         center_col = len(level[0]) // 2
@@ -598,7 +629,13 @@ def get_orange_target(clyde_x, clyde_y, og_eyes):
 
     dist_sq = (pac_r - cy_r)**2 + (pac_c - cy_c)**2
 
-    if og_eyes:
+    # Convert ghost pixel positions into grid coords
+    o_row, o_col = get_grid_pos(orange_ghost_x, orange_ghost_y)
+
+    if near_center_reg(o_row, o_col) and not og_eyes:
+        o_ghost_speed = 1
+        return (8, 13)
+    elif og_eyes:
         o_ghost_speed = 2
         center_row = len(level) // 2   
         center_col = len(level[0]) // 2
@@ -704,7 +741,7 @@ def eat_ghost(color):
     player_score += ghost_eat_score
 
 def restart_game():
-    global game_start, player_lives, game_start_timer, player_x, player_y, red_ghost_x, red_ghost_y, blue_ghost_x, blue_ghost_x, pink_ghost_x, pink_ghost_x, orange_ghost_x, orange_ghost_x, current_direction,pacman_frame_index, next_direction, pacman_frame_tick, red_direction, red_last_dir, pink_direction, pink_last_dir, blue_direction, blue_last_dir, orange_direction, orange_last_dir, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed, rg_eyes, bg_eyes, pg_eyes, og_eyes
+    global game_start, player_lives, game_start_timer, player_x, player_y, red_ghost_x, red_ghost_y, blue_ghost_x, blue_ghost_y, pink_ghost_x, pink_ghost_y, orange_ghost_x, orange_ghost_y, current_direction,pacman_frame_index, next_direction, pacman_frame_tick, red_direction, red_last_dir, pink_direction, pink_last_dir, blue_direction, blue_last_dir, orange_direction, orange_last_dir, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed, rg_eyes, bg_eyes, pg_eyes, og_eyes
     game_start = True
     game_start_timer = 120
     player_lives -= 1
@@ -758,6 +795,18 @@ def restart_game():
         player_x = TILE_SIZE * 13.5
         player_y = TILE_SIZE * 19.5
 
+# Tolerance: within 1 tile of the center to let ghosts turn back into ghosts from eyes
+def near_center(gr, gc):
+    center_row = len(level) // 2
+    center_col = len(level[0]) // 2
+    return abs(gr - center_row) <= 1 and abs(gc - center_col) <= 1
+
+# Tolerance: within 4 tiles of the center to make the ghosts leave their house
+def near_center_reg(gr, gc):
+    center_row = len(level) // 2
+    center_col = len(level[0]) // 2
+    return abs(gr - center_row) <= 4 and abs(gc - center_col) <= 4
+
 def check_center_tile():
     global red_ghost_x, red_ghost_y, pink_ghost_x, pink_ghost_y, blue_ghost_x, blue_ghost_y, orange_ghost_x, orange_ghost_y, rg_eyes, bg_eyes, pg_eyes, og_eyes, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed
 
@@ -769,10 +818,6 @@ def check_center_tile():
     b_row, b_col = get_grid_pos(blue_ghost_x, blue_ghost_y)
     p_row, p_col = get_grid_pos(pink_ghost_x, pink_ghost_y)
     o_row, o_col = get_grid_pos(orange_ghost_x, orange_ghost_y)
-
-    # Tolerance: within 1 tile of the center
-    def near_center(gr, gc):
-        return abs(gr - center_row) <= 1 and abs(gc - center_col) <= 1
 
     if rg_eyes and near_center(r_row, r_col):
         rg_eyes = False
@@ -863,7 +908,7 @@ while running:
 
                 pygame.draw.circle(screen, color,(x + TILE_SIZE // 2, y + TILE_SIZE // 2),power_pellet_radius)
 
-    # Draw Pac-Man lives near bottom of screen
+        # Draw Pac-Man lives near bottom of screen
         for life in range(player_lives):
                 
             # The circle center you actually draw:
@@ -960,9 +1005,22 @@ while running:
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.load("sounds/frightenedMode.mp3")
                 pygame.mixer.music.play()
+            # Check for level completion and reset level if so (case of completing level in frightened state)
+            if eaten_pellets == lvl1MinEaten and chosen_lvl == 1:
+                level = generate_level()
+                eaten_pellets = 0
+                player_lives += 1
+                frightened_mode = False
+                restart_game()
+            elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
+                level = generate_level()
+                eaten_pellets = 0
+                player_lives += 1
+                frightened_mode = False
+                restart_game()
         else:
             # Plays ghost siren only once so it does not keep playing
-            if player_score < 800:
+            if eaten_pellets < 50:
                 if not pygame.mixer.music.get_busy():
                     pygame.mixer.music.load("sounds/ghost_siren1.mp3")
                     pygame.mixer.music.play()
@@ -978,10 +1036,21 @@ while running:
                 if not pygame.mixer.music.get_busy():
                     pygame.mixer.music.load("sounds/ghost_siren4.mp3")
                     pygame.mixer.music.play()
-            elif eaten_pellets >= 200 and eaten_pellets < 235:
+            elif eaten_pellets >= 200 and eaten_pellets < 233:
                 if not pygame.mixer.music.get_busy():
                     pygame.mixer.music.load("sounds/ghost_siren5.mp3")
                     pygame.mixer.music.play()
+            # Check for level completion and reset level if so
+            if eaten_pellets == lvl1MinEaten and chosen_lvl == 1:
+                level = generate_level()
+                eaten_pellets = 0
+                player_lives += 1
+                restart_game()
+            elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
+                level = generate_level()
+                eaten_pellets = 0
+                player_lives += 1
+                restart_game()
 
         current_time = pygame.time.get_ticks()
 
@@ -1029,12 +1098,12 @@ while running:
         draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
 
         # Draw Score
-        score = score_font.render("Score: " + str(player_score), True, WHITE)
+        score = score_font.render("1UP: " + str(player_score), True, WHITE)
 
         # Draw Pac-Man lives near bottom of screen
         for life in range(player_lives):
             
-            # The circle center you actually draw:
+            # Pacman center:
             circle_center = (30 + TILE_SIZE * life, screen_height - 50)  
                     
             # Draw Pac-Man body
