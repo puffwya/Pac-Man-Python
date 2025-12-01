@@ -55,6 +55,7 @@ CYAN = (0, 255, 255)
 # Sound variables
 waka_sound = pygame.mixer.Sound("sounds/PacmanWaka.mp3")
 eating_ghost = pygame.mixer.Sound("sounds/PacmanEatingGhost.mp3")
+pacman_fail = pygame.mixer.Sound("sounds/PacmanFail.mp3")
 
 # Power Pellet "Blinking" Variables
 power_pellet_flipper = True
@@ -115,3 +116,9 @@ ghost_eaten_color = None
 ghost_eaten_timer = 0
 ghost_eaten_duration = 0.6   # seconds
 
+# Pacman death vars
+pacman_dying = False
+death_timer = 0.0
+death_anim_frame = 0
+DEATH_ANIM_SPEED = 0.12  # seconds between frames
+death_sound_once = False
