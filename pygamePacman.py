@@ -281,8 +281,11 @@ blue_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
 orange_ghost_x = TILE_SIZE * 14 + TILE_SIZE/2
 orange_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
 
-# movement speed
-ghost_speed = 1.0
+# Ghost movement speed vars
+r_ghost_speed = 1.0
+b_ghost_speed = 1.0
+p_ghost_speed = 1.0
+o_ghost_speed = 1.0
 
 # mode management
 ghost_mode = "scatter"            # can be "scatter", or "chase"
@@ -396,7 +399,6 @@ orange_ghost_up = []
 orange_ghost_down = []
 orange_ghost_left = []
 orange_ghost_right = []
-orange_direction = 'up'
 
 for i in range(num_frames):
     img = pygame.image.load(f"sprites/orange-ghost-up-{i}.png").convert_alpha()
@@ -441,6 +443,23 @@ for i in range(num_frames):
     img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
     white_scared_ghost.append(img)
 
+# Eaten ghost eyes sprites
+ghost_eyes_up = pygame.image.load(f"sprites/ghost-eyes-up.png").convert_alpha()
+w, h = ghost_eyes_up.get_size()
+ghost_eyes_up = pygame.transform.smoothscale(ghost_eyes_up, (int(w * scale_factor), int(h * scale_factor)))
+
+ghost_eyes_down = pygame.image.load(f"sprites/ghost-eyes-down.png").convert_alpha()
+w, h = ghost_eyes_down.get_size()
+ghost_eyes_down = pygame.transform.smoothscale(ghost_eyes_down, (int(w * scale_factor), int(h * scale_factor)))
+
+ghost_eyes_left = pygame.image.load(f"sprites/ghost-eyes-left.png").convert_alpha()
+w, h = ghost_eyes_left.get_size()
+ghost_eyes_left = pygame.transform.smoothscale(ghost_eyes_left, (int(w * scale_factor), int(h * scale_factor)))
+
+ghost_eyes_right = pygame.image.load(f"sprites/ghost-eyes-right.png").convert_alpha()
+w, h = ghost_eyes_right.get_size()
+ghost_eyes_right = pygame.transform.smoothscale(ghost_eyes_right, (int(w * scale_factor), int(h * scale_factor)))
+
 # Ghost animation control
 ghost_frame_index = 0
 GHOST_FRAME_DELAY = 5  # update every 5 game ticks
@@ -483,23 +502,36 @@ def is_direction_walkable(row, col, direction):
     return False
 
 # Gets Blinky's target tile
-def get_red_target():
+def get_red_target(rg_eyes):
     global player_x, player_y
-    if ghost_mode == "chase":
+    if rg_eyes:
+        r_ghost_speed = 2
+        center_row = len(level) // 2
+        center_col = len(level[0]) // 2
+        return (center_row, center_col)
+    elif ghost_mode == "chase":
+        r_ghost_speed = 1
         pac_r, pac_c = get_grid_pos(player_x, player_y)
         return (pac_r, pac_c)
     elif ghost_mode == "scatter":
+        r_ghost_speed = 1
         return (0, COLS-1)
 
 # Gets Pinky's target tile
-def get_pink_target():
+def get_pink_target(pg_eyes):
     global current_direction, player_x, player_y
     pac_r, pac_c = get_grid_pos(player_x, player_y)
 
     # Pac-Man's facing direction
     d = current_direction  # "up", "down", "left", "right"
 
-    if ghost_mode == "chase":
+    if pg_eyes:
+        p_ghost_speed = 2
+        center_row = len(level) // 2   
+        center_col = len(level[0]) // 2
+        return (center_row, center_col)
+    elif ghost_mode == "chase":
+        p_ghost_speed = 1
         # Offset according to original behavior
         if d == "up":
             return (pac_r - 4, pac_c - 4)
@@ -512,12 +544,19 @@ def get_pink_target():
         # fallback
         return (pac_r, pac_c)
     elif ghost_mode == "scatter":
+        p_ghost_speed = 1
         return (0, 0)
 
 # Gets Inky's target tile
-def get_blue_target(blinky_x, blinky_y):
+def get_blue_target(blinky_x, blinky_y, bg_eyes):
     global current_direction, player_x, player_y
-    if ghost_mode == "chase":
+    if bg_eyes:
+        b_ghost_speed = 2
+        center_row = len(level) // 2   
+        center_col = len(level[0]) // 2
+        return (center_row, center_col)
+    elif ghost_mode == "chase":
+        b_ghost_speed = 1
         # Step 1: Pac-Man's offset tile (2 ahead)
         pac_r, pac_c = get_grid_pos(player_x, player_y)
         d = current_direction
@@ -548,33 +587,65 @@ def get_blue_target(blinky_x, blinky_y):
 
         return (final_r, final_c)
     elif ghost_mode == "scatter":
+        b_ghost_speed = 1
         return(ROWS-1, COLS-1)
 
 
-def get_orange_target(clyde_x, clyde_y):
+def get_orange_target(clyde_x, clyde_y, og_eyes):
     global player_x, player_y
     pac_r, pac_c = get_grid_pos(player_x, player_y)
     cy_r, cy_c = get_grid_pos(clyde_x, clyde_y)
 
     dist_sq = (pac_r - cy_r)**2 + (pac_c - cy_c)**2
 
-    if dist_sq >= 64:  # 8 tiles squared
+    if og_eyes:
+        o_ghost_speed = 2
+        center_row = len(level) // 2   
+        center_col = len(level[0]) // 2
+        return (center_row, center_col)
+    elif dist_sq >= 64:  # 8 tiles squared
+        o_ghost_speed = 1
         return (pac_r, pac_c)  # chase
     else:
+        o_ghost_speed = 1
         return (ROWS-1, 0)     # scatter corner
 
-def target_frightened(ghost_x, ghost_y):
-    row, col = get_grid_pos(ghost_x, ghost_y)
-    possible = []
-
-    for d in ["up","left","down","right"]:
-        if is_direction_walkable(row, col, d):
-            possible.append(d)
-    
-    if possible:
-        return get_next_tile(row, col, random.choice(possible))
+def target_frightened(ghost_x, ghost_y, ghost_eyes):
+    global r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed
+    # If in "eyes" mode target center tile and set speed to 3
+    if ghost_eyes:
+        if ghost_eyes == rg_eyes:
+            r_ghost_speed = 2
+        if ghost_eyes == bg_eyes:
+            b_ghost_speed = 2
+        if ghost_eyes == pg_eyes:
+            p_ghost_speed = 2
+        if ghost_eyes == og_eyes:
+            o_ghost_speed = 2
+        center_row = len(level) // 2
+        center_col = len(level[0]) // 2
+        return (center_row, center_col)
+    # If not in "eyes" mode but still frightened set speed to 1 (to be safe) and target random tile
     else:
-        return (row, col)
+        if ghost_eyes == rg_eyes:
+            r_ghost_speed = 1
+        elif ghost_eyes == bg_eyes:
+            b_ghost_speed = 1
+        elif ghost_eyes == pg_eyes:
+            p_ghost_speed = 1
+        elif ghost_eyes == og_eyes:
+            o_ghost_speed = 1
+        row, col = get_grid_pos(ghost_x, ghost_y)
+        possible = []
+
+        for d in ["up","left","down","right"]:
+            if is_direction_walkable(row, col, d):
+                possible.append(d)
+    
+        if possible:
+            return get_next_tile(row, col, random.choice(possible))
+        else:
+            return (row, col)
 
 # Chooses ghosts direction based on their specific target tile
 def choose_ghost_direction(ghost_x, ghost_y, ghost_current_direction, target):
@@ -612,6 +683,112 @@ def choose_ghost_direction(ghost_x, ghost_y, ghost_current_direction, target):
             best_dir = d
 
     return best_dir
+
+def is_ghost_collision(px, py, gx, gy):
+    dx = px - gx
+    dy = py - gy
+    dist_sq = dx*dx + dy*dy
+    if dist_sq < COLLISION_DISTANCE * COLLISION_DISTANCE:
+        return True
+
+def eat_ghost(color):
+    global ghost_eaten, ghost_eaten_color, ghost_eaten_timer, player_score, ghost_eat_score
+
+    ghost_eaten = True
+    ghost_eaten_color = color
+    ghost_eaten_timer = 0
+
+    # play sound
+    eating_ghost.play()
+
+    player_score += ghost_eat_score
+
+def restart_game():
+    global game_start, player_lives, game_start_timer, player_x, player_y, red_ghost_x, red_ghost_y, blue_ghost_x, blue_ghost_x, pink_ghost_x, pink_ghost_x, orange_ghost_x, orange_ghost_x, current_direction,pacman_frame_index, next_direction, pacman_frame_tick, red_direction, red_last_dir, pink_direction, pink_last_dir, blue_direction, blue_last_dir, orange_direction, orange_last_dir, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed, rg_eyes, bg_eyes, pg_eyes, og_eyes
+    game_start = True
+    game_start_timer = 120
+    player_lives -= 1
+
+    # Reset red ghost starting position and speed
+    red_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
+    red_ghost_y = TILE_SIZE * 10 + TILE_SIZE/2
+    r_ghost_speed = 1
+    rg_eyes = False
+    
+    # Reset pink ghost starting position and speed
+    pink_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
+    pink_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+    p_ghost_speed = 1
+    pg_eyes = False    
+
+    # Reset blue ghost starting position and speed
+    blue_ghost_x = TILE_SIZE * 12 + TILE_SIZE/2
+    blue_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+    b_ghost_speed = 1
+    bg_eyes = False
+     
+    # Reset orange ghost starting positions and speed
+    orange_ghost_x = TILE_SIZE * 14 + TILE_SIZE/2
+    orange_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+    o_ghost_speed = 1
+    og_eyes = False
+
+    # Ghost directional variables
+    red_direction = "left"          # current movement direction
+    red_last_dir = "left"           # needed to prevent reversing
+    
+    pink_direction = "down"
+    pink_last_dir = "down"
+    
+    blue_direction = "up"
+    blue_last_dir = "up"
+   
+    orange_direction = "up"
+    orange_last_dir = "up"
+
+    # Reset player position and mouth angle
+    pacman_frame_index = 0
+    pacman_frame_tick = 0
+    current_direction = None
+    next_direction = None
+    if chosen_lvl == 1:
+        player_x = TILE_SIZE * 13.5
+        player_y = TILE_SIZE * 20.5
+    elif chosen_lvl == 2:
+        player_x = TILE_SIZE * 13.5
+        player_y = TILE_SIZE * 19.5
+
+def check_center_tile():
+    global red_ghost_x, red_ghost_y, pink_ghost_x, pink_ghost_y, blue_ghost_x, blue_ghost_y, orange_ghost_x, orange_ghost_y, rg_eyes, bg_eyes, pg_eyes, og_eyes, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed
+
+    center_row = len(level) // 2
+    center_col = len(level[0]) // 2
+
+    # Convert ghost pixel positions into grid coords
+    r_row, r_col = get_grid_pos(red_ghost_x, red_ghost_y)
+    b_row, b_col = get_grid_pos(blue_ghost_x, blue_ghost_y)
+    p_row, p_col = get_grid_pos(pink_ghost_x, pink_ghost_y)
+    o_row, o_col = get_grid_pos(orange_ghost_x, orange_ghost_y)
+
+    # Tolerance: within 1 tile of the center
+    def near_center(gr, gc):
+        return abs(gr - center_row) <= 1 and abs(gc - center_col) <= 1
+
+    if rg_eyes and near_center(r_row, r_col):
+        rg_eyes = False
+        r_ghost_speed = 1
+
+    if bg_eyes and near_center(b_row, b_col):
+        bg_eyes = False
+        b_ghost_speed = 1
+
+    if pg_eyes and near_center(p_row, p_col):
+        pg_eyes = False
+        p_ghost_speed = 1
+
+    if og_eyes and near_center(o_row, o_col):
+        og_eyes = False
+        o_ghost_speed = 1
 
 clock = pygame.time.Clock()
 
@@ -888,163 +1065,350 @@ while running:
 
         if frightened_mode:
             frightened_timer += dt
-            
-            # --- Red Ghost Movement ---
-            if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
-                # SNAP to center so rounding errors don't build up
-                red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
-                
-                target = target_frightened(red_ghost_x, red_ghost_y)
-                red_direction = choose_ghost_direction(red_ghost_x, red_ghost_y, red_direction, target)
-                
-            # Move ghost by direction
-            if red_direction == "up":
-                red_ghost_y -= ghost_speed
-            elif red_direction == "down":
-                red_ghost_y += ghost_speed
-            elif red_direction == "left":
-                red_ghost_x -= ghost_speed
-            elif red_direction == "right":
-                red_ghost_x += ghost_speed  
-                
-                
-            # After moving, if ghost is now very close to the target tile center, snap to exact center
-            if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
-                red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
 
-            # --- Blue Ghost Movement ---
-            if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
-                # SNAP to center so rounding errors don't build up
-                blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
-                
-                target = target_frightened(blue_ghost_x, blue_ghost_y)
-                blue_direction = choose_ghost_direction(blue_ghost_x, blue_ghost_y, blue_direction, target)
-                
-            # Move ghost by direction
-            if blue_direction == "up":
-                blue_ghost_y -= ghost_speed
-            elif blue_direction == "down":
-                blue_ghost_y += ghost_speed
-            elif blue_direction == "left":
-                blue_ghost_x -= ghost_speed
-            elif blue_direction == "right":
-                blue_ghost_x += ghost_speed  
-                
-                
-            # After moving, if ghost is now very close to the target tile center, snap to exact center
-            if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
-                blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+            check_center_tile()
 
-            # --- Pink Ghost Movement ---
-            if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
-                # SNAP to center so rounding errors don't build up
-                pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
-                
-                target = target_frightened(pink_ghost_x, pink_ghost_y)
-                pink_direction = choose_ghost_direction(pink_ghost_x, pink_ghost_y, pink_direction, target)
-                
-            # Move ghost by direction
-            if pink_direction == "up":
-                pink_ghost_y -= ghost_speed
-            elif pink_direction == "down":
-                pink_ghost_y += ghost_speed
-            elif pink_direction == "left":
-                pink_ghost_x -= ghost_speed
-            elif pink_direction == "right":
-                pink_ghost_x += ghost_speed  
-                
-                
-            # After moving, if ghost is now very close to the target tile center, snap to exact center
-            if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
-                pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+            # Check for ghost collision when in frightened mode
+            if is_ghost_collision(player_x, player_y, red_ghost_x, red_ghost_y) and rg_eyes == False:
+                eat_ghost("red")
+            elif is_ghost_collision(player_x, player_y, blue_ghost_x, blue_ghost_y) and bg_eyes == False:
+                eat_ghost("blue")   
+            elif is_ghost_collision(player_x, player_y, pink_ghost_x, pink_ghost_y) and pg_eyes == False:
+                eat_ghost("pink")
+            elif is_ghost_collision(player_x, player_y, orange_ghost_x, orange_ghost_y) and og_eyes == False:
+                eat_ghost("orange")
 
-            # --- Orange Ghost Movement ---
-            if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
-                # SNAP to center so rounding errors don't build up
-                orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
-                
-                target = target_frightened(orange_ghost_x, orange_ghost_y)
-                orange_direction = choose_ghost_direction(orange_ghost_x, orange_ghost_y, orange_direction, target)
-                
-            # Move ghost by direction
-            if orange_direction == "up":
-                orange_ghost_y -= ghost_speed
-            elif orange_direction == "down":
-                orange_ghost_y += ghost_speed
-            elif orange_direction == "left":
-                orange_ghost_x -= ghost_speed
-            elif orange_direction == "right":
-                orange_ghost_x += ghost_speed  
-                
-                
-            # After moving, if ghost is now very close to the target tile center, snap to exact center
-            if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
-                orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)            
+            if ghost_eaten:
+                ghost_eaten_timer += dt
+                player_speed = 0
+                r_ghost_speed = 0
+                b_ghost_speed = 0
+                p_ghost_speed = 0
+                o_ghost_speed = 0
 
-            if frightened_timer < 4:
-                # Draws normal frightened mode
-                frame = scared_ghost[ghost_frame_index]
-                draw_x = red_ghost_x - frame.get_width()/2
-                draw_y = red_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
+                # Draw black circles covering Pac-Man + ghost
+                pygame.draw.circle(screen, BLACK, (player_x, player_y), player_radius)
+
+                EATEN_SCORE = g_eat_font.render(str(ghost_eat_score), True, CYAN)
+                if ghost_eaten_color == "red":
+                    pygame.draw.circle(screen, BLACK, (red_ghost_x, red_ghost_y), player_radius)
+                    # Eaten score
+                    eaten_score_rect = EATEN_SCORE.get_rect(center=(red_ghost_x, red_ghost_y))
+                    screen.blit(EATEN_SCORE, eaten_score_rect)
+                    rg_eyes = True
+                elif ghost_eaten_color == "blue":
+                    pygame.draw.circle(screen, BLACK, (blue_ghost_x, blue_ghost_y), player_radius)
+                    # Eaten score      
+                    eaten_score_rect = EATEN_SCORE.get_rect(center=(blue_ghost_x, blue_ghost_y))
+                    screen.blit(EATEN_SCORE, eaten_score_rect)
+                    bg_eyes = True
+                elif ghost_eaten_color == "pink":
+                    pygame.draw.circle(screen, BLACK, (pink_ghost_x, pink_ghost_y), player_radius)
+                    # Eaten score      
+                    eaten_score_rect = EATEN_SCORE.get_rect(center=(pink_ghost_x, pink_ghost_y))
+                    screen.blit(EATEN_SCORE, eaten_score_rect)
+                    pg_eyes = True
+                elif ghost_eaten_color == "orange":
+                    pygame.draw.circle(screen, BLACK, (orange_ghost_x, orange_ghost_y), player_radius)
+                    # Eaten score      
+                    eaten_score_rect = EATEN_SCORE.get_rect(center=(orange_ghost_x, orange_ghost_y))
+                    screen.blit(EATEN_SCORE, eaten_score_rect)
+                    og_eyes = True
+
+                # After pause ends
+                if ghost_eaten_timer >= ghost_eaten_duration:
+                    ghost_eaten = False
+                    player_speed = 2
+                    r_ghost_speed = 1
+                    b_ghost_speed = 1
+                    p_ghost_speed = 1
+                    o_ghost_speed = 1
+                    ghost_eat_score *= 2
             
-                draw_x = blue_ghost_x - frame.get_width()/2
-                draw_y = blue_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-            
-                draw_x = pink_ghost_x - frame.get_width()/2
-                draw_y = pink_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-            
-                draw_x = orange_ghost_x - frame.get_width()/2 
-                draw_y = orange_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-            elif frightened_timer >= 4 and flashing_frightened_flipper:
-                # Draws white ghost
-                frame = white_scared_ghost[ghost_frame_index]
-                draw_x = red_ghost_x - frame.get_width()/2
-                draw_y = red_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-            
-                draw_x = blue_ghost_x - frame.get_width()/2
-                draw_y = blue_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
+            else:            
+
+                # --- Red Ghost Movement ---
+                if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                    # SNAP to center so rounding errors don't build up
+                    red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
                 
-                draw_x = pink_ghost_x - frame.get_width()/2
-                draw_y = pink_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-            
-                draw_x = orange_ghost_x - frame.get_width()/2
-                draw_y = orange_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-            elif frightened_timer >= 4 and not flashing_frightened_flipper:
-                # Draws blue ghost    
-                frame = scared_ghost[ghost_frame_index]
-                draw_x = red_ghost_x - frame.get_width()/2
-                draw_y = red_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-            
-                draw_x = blue_ghost_x - frame.get_width()/2
-                draw_y = blue_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-            
-                draw_x = pink_ghost_x - frame.get_width()/2
-                draw_y = pink_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-            
-                draw_x = orange_ghost_x - frame.get_width()/2
-                draw_y = orange_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
+                    target = target_frightened(red_ghost_x, red_ghost_y, rg_eyes)
+                    red_direction = choose_ghost_direction(red_ghost_x, red_ghost_y, red_direction, target)
+        
+                # Move ghost by direction
+                if red_direction == "up":
+                    red_ghost_y -= r_ghost_speed
+                elif red_direction == "down":
+                    red_ghost_y += r_ghost_speed
+                elif red_direction == "left":
+                    red_ghost_x -= r_ghost_speed
+                elif red_direction == "right":
+                    red_ghost_x += r_ghost_speed  
+                
+                
+                # After moving, if ghost is now very close to the target tile center, snap to exact center
+                if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                    red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
 
+                # --- Blue Ghost Movement ---
+                if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                    # SNAP to center so rounding errors don't build up
+                    blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+                
+                    target = target_frightened(blue_ghost_x, blue_ghost_y, bg_eyes)
+                    blue_direction = choose_ghost_direction(blue_ghost_x, blue_ghost_y, blue_direction, target)
+                
+                # Move ghost by direction
+                if blue_direction == "up":
+                    blue_ghost_y -= b_ghost_speed
+                elif blue_direction == "down":
+                    blue_ghost_y += b_ghost_speed
+                elif blue_direction == "left":
+                    blue_ghost_x -= b_ghost_speed
+                elif blue_direction == "right":
+                    blue_ghost_x += b_ghost_speed  
+                
+                
+                # After moving, if ghost is now very close to the target tile center, snap to exact center
+                if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                    blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
 
-            if frightened_timer >= FRIGHTENED_DURATION:
-                frightened_mode = False
-                frightened_timer = 0.0
-                # resume normal scatter/chase mode
-                ghost_mode_timer = 0
+                # --- Pink Ghost Movement ---
+                if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                    # SNAP to center so rounding errors don't build up
+                    pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+                
+                    target = target_frightened(pink_ghost_x, pink_ghost_y, pg_eyes)
+                    pink_direction = choose_ghost_direction(pink_ghost_x, pink_ghost_y, pink_direction, target)
+                
+                # Move ghost by direction
+                if pink_direction == "up":
+                    pink_ghost_y -= p_ghost_speed
+                elif pink_direction == "down":
+                    pink_ghost_y += p_ghost_speed
+                elif pink_direction == "left":
+                    pink_ghost_x -= p_ghost_speed
+                elif pink_direction == "right":
+                    pink_ghost_x += p_ghost_speed  
+                
+                
+                # After moving, if ghost is now very close to the target tile center, snap to exact center
+                if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                    pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+
+                # --- Orange Ghost Movement ---
+                if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                    # SNAP to center so rounding errors don't build up
+                    orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
+                
+                    target = target_frightened(orange_ghost_x, orange_ghost_y, og_eyes)
+                    orange_direction = choose_ghost_direction(orange_ghost_x, orange_ghost_y, orange_direction, target)
+                
+                # Move ghost by direction
+                if orange_direction == "up":
+                    orange_ghost_y -= o_ghost_speed
+                elif orange_direction == "down":
+                    orange_ghost_y += o_ghost_speed
+                elif orange_direction == "left":
+                    orange_ghost_x -= o_ghost_speed
+                elif orange_direction == "right":
+                    orange_ghost_x += o_ghost_speed  
+                
+                
+                # After moving, if ghost is now very close to the target tile center, snap to exact center
+                if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                    orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)            
+
+                if frightened_timer < 4:
+                    # Draws normal frightened mode unless in eyes mode
+                    frame = scared_ghost[ghost_frame_index]
+                    draw_x = red_ghost_x - frame.get_width()/2
+                    draw_y = red_ghost_y - frame.get_height()/2
+                    if rg_eyes:
+                        if red_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif red_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif red_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif red_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = blue_ghost_x - frame.get_width()/2
+                    draw_y = blue_ghost_y - frame.get_height()/2
+                    if bg_eyes:
+                        if blue_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif blue_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif blue_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif blue_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = pink_ghost_x - frame.get_width()/2
+                    draw_y = pink_ghost_y - frame.get_height()/2
+                    if pg_eyes:
+                        if pink_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif pink_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif pink_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif pink_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = orange_ghost_x - frame.get_width()/2 
+                    draw_y = orange_ghost_y - frame.get_height()/2
+                    if og_eyes:
+                        if orange_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif orange_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif orange_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif orange_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+
+                elif frightened_timer >= 4 and flashing_frightened_flipper:
+                    # Draws white ghost unless in eyes mode
+                    frame = white_scared_ghost[ghost_frame_index]
+                    draw_x = red_ghost_x - frame.get_width()/2
+                    draw_y = red_ghost_y - frame.get_height()/2
+                    if rg_eyes:
+                        if red_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif red_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif red_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif red_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = blue_ghost_x - frame.get_width()/2
+                    draw_y = blue_ghost_y - frame.get_height()/2
+                    if bg_eyes:
+                        if blue_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif blue_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif blue_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif blue_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+                
+                    draw_x = pink_ghost_x - frame.get_width()/2
+                    draw_y = pink_ghost_y - frame.get_height()/2
+                    if pg_eyes:
+                        if pink_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif pink_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif pink_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif pink_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = orange_ghost_x - frame.get_width()/2
+                    draw_y = orange_ghost_y - frame.get_height()/2
+                    if og_eyes:
+                        if orange_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif orange_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif orange_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif orange_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+                elif frightened_timer >= 4 and not flashing_frightened_flipper:
+                    # Draws blue ghost unless in eyes mode
+                    frame = scared_ghost[ghost_frame_index]
+                    draw_x = red_ghost_x - frame.get_width()/2
+                    draw_y = red_ghost_y - frame.get_height()/2
+                    if rg_eyes:
+                        if red_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif red_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif red_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif red_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = blue_ghost_x - frame.get_width()/2
+                    draw_y = blue_ghost_y - frame.get_height()/2
+                    if bg_eyes:
+                        if blue_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif blue_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif blue_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif blue_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = pink_ghost_x - frame.get_width()/2
+                    draw_y = pink_ghost_y - frame.get_height()/2
+                    if pg_eyes:
+                        if pink_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif pink_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif pink_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif pink_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = orange_ghost_x - frame.get_width()/2
+                    draw_y = orange_ghost_y - frame.get_height()/2
+                    if og_eyes:
+                        if orange_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif orange_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif orange_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif orange_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+
+                if frightened_timer >= FRIGHTENED_DURATION:
+                    frightened_mode = False
+                    frightened_timer = 0.0
+                    # resume normal scatter/chase mode
+                    ghost_mode_timer = 0
         else:
 
             ghost_mode_timer += dt
+
+            # Reset ghost_eat_score back to 200
+            ghost_eat_score = 200
+
+            # Check if a ghost is at the center tile
+            check_center_tile()
 
             # Get current mode + duration
             ghost_mode, duration = MODE_CYCLE[ghost_mode_index]
@@ -1070,18 +1434,18 @@ while running:
                 # SNAP to center so rounding errors don't build up
                 red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
 
-                target = get_red_target()
+                target = get_red_target(rg_eyes)
                 red_direction = choose_ghost_direction(red_ghost_x, red_ghost_y, red_direction, target)
 
             # Move ghost by direction
             if red_direction == "up":
-                red_ghost_y -= ghost_speed
+                red_ghost_y -= r_ghost_speed
             elif red_direction == "down":
-                red_ghost_y += ghost_speed
+                red_ghost_y += r_ghost_speed
             elif red_direction == "left":
-                red_ghost_x -= ghost_speed
+                red_ghost_x -= r_ghost_speed
             elif red_direction == "right":
-                red_ghost_x += ghost_speed
+                red_ghost_x += r_ghost_speed
 
 
             # After moving, if ghost is now very close to the target tile center, snap to exact center
@@ -1093,18 +1457,18 @@ while running:
                 # SNAP to center so rounding errors don't build up
                 pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
             
-                target = get_pink_target()
+                target = get_pink_target(pg_eyes)
                 pink_direction = choose_ghost_direction(pink_ghost_x, pink_ghost_y, pink_direction, target)
         
             # Move ghost by direction 
             if pink_direction == "up":
-                pink_ghost_y -= ghost_speed
+                pink_ghost_y -= p_ghost_speed
             elif pink_direction == "down":
-                pink_ghost_y += ghost_speed
+                pink_ghost_y += p_ghost_speed
             elif pink_direction == "left":
-                pink_ghost_x -= ghost_speed
+                pink_ghost_x -= p_ghost_speed
             elif pink_direction == "right":
-                pink_ghost_x += ghost_speed  
+                pink_ghost_x += p_ghost_speed  
             
     
             # After moving, if ghost is now very close to the target tile center, snap to exact center
@@ -1116,18 +1480,18 @@ while running:
                 # SNAP to center so rounding errors don't build up
                 blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
         
-                target = get_blue_target(red_ghost_x, red_ghost_y)
+                target = get_blue_target(red_ghost_x, red_ghost_y, bg_eyes)
                 blue_direction = choose_ghost_direction(blue_ghost_x, blue_ghost_y, blue_direction, target)
         
             # Move ghost by direction
             if blue_direction == "up":
-                blue_ghost_y -= ghost_speed
+                blue_ghost_y -= b_ghost_speed
             elif blue_direction == "down":
-                blue_ghost_y += ghost_speed
+                blue_ghost_y += b_ghost_speed
             elif blue_direction == "left":
-                blue_ghost_x -= ghost_speed
+                blue_ghost_x -= b_ghost_speed
             elif blue_direction == "right":
-                blue_ghost_x += ghost_speed
+                blue_ghost_x += b_ghost_speed
         
         
             # After moving, if ghost is now very close to the target tile center, snap to exact center
@@ -1140,52 +1504,102 @@ while running:
                 # SNAP to center so rounding errors don't build up
                 orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
         
-                target = get_orange_target(orange_ghost_x, orange_ghost_y)
+                target = get_orange_target(orange_ghost_x, orange_ghost_y, og_eyes)
                 orange_direction = choose_ghost_direction(orange_ghost_x, orange_ghost_y, orange_direction, target)
         
             # Move ghost by direction
             if orange_direction == "up":
-                orange_ghost_y -= ghost_speed
+                orange_ghost_y -= o_ghost_speed
             elif orange_direction == "down":
-                orange_ghost_y += ghost_speed
+                orange_ghost_y += o_ghost_speed
             elif orange_direction == "left":
-                orange_ghost_x -= ghost_speed
+                orange_ghost_x -= o_ghost_speed
             elif orange_direction == "right":
-                orange_ghost_x += ghost_speed
+                orange_ghost_x += o_ghost_speed
             
             
             # After moving, if ghost is now very close to the target tile center, snap to exact center
             if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
                 orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
 
-            # Draw normally
+            # Draw normally unless in eyes mode
             # --- Draw red ghost ---
             r_ghost_frames = red_ghost_sprites[red_direction]
             frame = r_ghost_frames[ghost_frame_index]
             draw_x = red_ghost_x - frame.get_width()/2
             draw_y = red_ghost_y - frame.get_height()/2
-            screen.blit(frame, (draw_x, draw_y))
+            if rg_eyes:
+                if red_direction == "up":
+                    screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                elif red_direction == "down":
+                    screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                elif red_direction == "left":
+                    screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                elif red_direction == "right":
+                    screen.blit(ghost_eyes_right, (draw_x, draw_y))
+            else:
+                screen.blit(frame, (draw_x, draw_y))
                 
             # --- Draw blue ghost ---
             b_ghost_frames = blue_ghost_sprites[blue_direction]   
             frame = b_ghost_frames[ghost_frame_index]
             draw_x = blue_ghost_x - frame.get_width()/2
             draw_y = blue_ghost_y - frame.get_height()/2
-            screen.blit(frame, (draw_x, draw_y))
+            if bg_eyes:
+                if blue_direction == "up":
+                    screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                elif blue_direction == "down":
+                    screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                elif blue_direction == "left":
+                    screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                elif blue_direction == "right":
+                    screen.blit(ghost_eyes_right, (draw_x, draw_y))
+            else:
+                screen.blit(frame, (draw_x, draw_y))
                 
             # --- Draw pink ghost ---
             p_ghost_frames = pink_ghost_sprites[pink_direction]
             frame = p_ghost_frames[ghost_frame_index]
             draw_x = pink_ghost_x - frame.get_width()/2
             draw_y = pink_ghost_y - frame.get_height()/2
-            screen.blit(frame, (draw_x, draw_y))
+            if pg_eyes:
+                if pink_direction == "up":
+                    screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                elif pink_direction == "down":
+                    screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                elif pink_direction == "left":
+                    screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                elif pink_direction == "right":
+                    screen.blit(ghost_eyes_right, (draw_x, draw_y))
+            else:
+                screen.blit(frame, (draw_x, draw_y))
                 
             # --- Draw Orange ghost ---
             o_ghost_frames = orange_ghost_sprites[orange_direction]
             frame = o_ghost_frames[ghost_frame_index]
             draw_x = orange_ghost_x - frame.get_width()/2
             draw_y = orange_ghost_y - frame.get_height()/2
-            screen.blit(frame, (draw_x, draw_y))
+            if og_eyes:
+                if orange_direction == "up":
+                    screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                elif orange_direction == "down":
+                    screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                elif orange_direction == "left":
+                    screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                elif orange_direction == "right":
+                    screen.blit(ghost_eyes_right, (draw_x, draw_y))
+            else:
+                screen.blit(frame, (draw_x, draw_y))
+
+            # Check for ghost collision when not in frightened mode
+            if is_ghost_collision(player_x, player_y, red_ghost_x, red_ghost_y) and not rg_eyes:
+                restart_game() 
+            elif is_ghost_collision(player_x, player_y, blue_ghost_x, blue_ghost_y) and not bg_eyes:
+                restart_game()
+            elif is_ghost_collision(player_x, player_y, pink_ghost_x, pink_ghost_y) and not pg_eyes:
+                restart_game()
+            elif is_ghost_collision(player_x, player_y, orange_ghost_x, orange_ghost_y) and not og_eyes:
+                restart_game()
 
         # --- Update ghost animations ---
         ghost_frame_tick += 1

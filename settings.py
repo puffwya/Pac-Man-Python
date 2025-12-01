@@ -11,6 +11,7 @@ pygame.init()
 pygame.font.init()
 score_font = pygame.font.Font("Grand9K Pixel.ttf", 30)
 ready_font = pygame.font.Font("Grand9K Pixel.ttf", 20)
+g_eat_font = pygame.font.Font("Grand9K Pixel.ttf", 15)
 
 # Initialize mixer
 pygame.mixer.init()
@@ -53,6 +54,7 @@ CYAN = (0, 255, 255)
 
 # Sound variables
 waka_sound = pygame.mixer.Sound("sounds/PacmanWaka.mp3")
+eating_ghost = pygame.mixer.Sound("sounds/PacmanEatingGhost.mp3")
 
 # Power Pellet "Blinking" Variables
 power_pellet_flipper = True
@@ -89,6 +91,27 @@ blue_last_dir = "up"
 orange_direction = "up"
 orange_last_dir = "up"
 
-# MIN SCORES FOR LEVEL COMPLETION
-lvl1MinScore = 2490
-lvl2MinScore = 2370
+# Pacman and Ghost collision
+COLLISION_DISTANCE = player_radius
+
+# MIN PELLETS EATEN FOR LEVEL COMPLETION
+# LVL1 min score = 2490
+lvl1MinEaten = 233
+# LVL2 min score = 2370
+lvl2MinEaten = 221
+
+# Ghost eaten score (200 at the start of a frightened state and increase by x2 for each ghost eaten)
+ghost_eat_score = 200
+
+# Ghost eyes state
+rg_eyes = False
+bg_eyes = False
+pg_eyes = False
+og_eyes = False
+
+# Ghost eaten vars
+ghost_eaten = False
+ghost_eaten_color = None
+ghost_eaten_timer = 0
+ghost_eaten_duration = 0.6   # seconds
+
