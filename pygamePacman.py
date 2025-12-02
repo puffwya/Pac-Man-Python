@@ -292,7 +292,7 @@ def is_current_tile_pellet():
             pickup_score = 3000
             pickup_frame += 1
             pickup_for_level = True
-            item_score_time = 0
+            item_score_timer = 0
         elif pickup_frame == 7 and not pickup_for_level:
             item_pickup.play()
             player_score += 5000
@@ -1201,6 +1201,9 @@ while running:
                     pickup_score_rect = PICKUP_SCORE.get_rect(center=(pickup_x+TILE_SIZE//2, pickup_y+TILE_SIZE//2 - 2))
                     screen.blit(PICKUP_SCORE, pickup_score_rect)
                     item_score_timer += dt
+            else:
+                pickup_x = 0
+                pickup_y = 0
 
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.load("sounds/frightenedMode.mp3")
@@ -1210,24 +1213,28 @@ while running:
                 level = generate_level()
                 eaten_pellets = 0
                 player_lives += 1
-                pickup_for_level = False
                 frightened_mode = False
                 restart_game()
+                pickup_for_level = False
             elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
                 level = generate_level()
                 eaten_pellets = 0
                 player_lives += 1
-                pickup_for_level = False
                 frightened_mode = False
                 restart_game()
+                pickup_for_level = False
         else:
             if not pacman_dying:
                 # Plays ghost siren only once so it does not keep playing
                 if eaten_pellets < 50:
+                    pickup_x = 0
+                    pickup_y = 0
                     if not pygame.mixer.music.get_busy():
                         pygame.mixer.music.load("sounds/ghost_siren1.mp3")
                         pygame.mixer.music.play()
                 elif eaten_pellets >= 50 and eaten_pellets < 100:
+                    pickup_x = 0
+                    pickup_y = 0
                     if not pygame.mixer.music.get_busy():
                         pygame.mixer.music.load("sounds/ghost_siren2.mp3")
                         pygame.mixer.music.play()
@@ -1252,10 +1259,14 @@ while running:
                         pygame.mixer.music.load("sounds/ghost_siren3.mp3")
                         pygame.mixer.music.play()
                 elif eaten_pellets >= 150 and eaten_pellets < 200:
+                    pickup_x = 0
+                    pickup_y = 0
                     if not pygame.mixer.music.get_busy():
                         pygame.mixer.music.load("sounds/ghost_siren4.mp3")
                         pygame.mixer.music.play()
                 elif eaten_pellets >= 200 and eaten_pellets < 233:
+                    pickup_x = 0
+                    pickup_y = 0
                     if not pygame.mixer.music.get_busy():
                         pygame.mixer.music.load("sounds/ghost_siren5.mp3")
                         pygame.mixer.music.play()
@@ -1263,17 +1274,17 @@ while running:
             if eaten_pellets == lvl1MinEaten and chosen_lvl == 1:
                 level = generate_level()
                 eaten_pellets = 0
-                pickup_for_level = False
                 frightened_mode = False
                 player_lives += 1
                 restart_game()
+                pickup_for_level = False
             elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
                 level = generate_level()
                 eaten_pellets = 0
-                pickup_for_level = False
                 frightened_mode = False
                 player_lives += 1
                 restart_game()
+                pickup_for_level = False
 
         current_time = pygame.time.get_ticks()
 
@@ -1390,24 +1401,208 @@ while running:
                     eaten_score_rect = EATEN_SCORE.get_rect(center=(red_ghost_x, red_ghost_y))
                     screen.blit(EATEN_SCORE, eaten_score_rect)
                     rg_eyes = True
+
+                    # Draw Ghosts
+                    frame = scared_ghost[ghost_frame_index]
+
+                    draw_x = blue_ghost_x - frame.get_width()/2
+                    draw_y = blue_ghost_y - frame.get_height()/2
+                    if bg_eyes:
+                        if blue_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif blue_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif blue_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif blue_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = pink_ghost_x - frame.get_width()/2
+                    draw_y = pink_ghost_y - frame.get_height()/2
+                    if pg_eyes:
+                        if pink_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif pink_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif pink_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif pink_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = orange_ghost_x - frame.get_width()/2 
+                    draw_y = orange_ghost_y - frame.get_height()/2
+                    if og_eyes:
+                        if orange_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif orange_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif orange_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif orange_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+
+
                 elif ghost_eaten_color == "blue":
                     pygame.draw.circle(screen, BLACK, (blue_ghost_x, blue_ghost_y), player_radius)
                     # Eaten score      
                     eaten_score_rect = EATEN_SCORE.get_rect(center=(blue_ghost_x, blue_ghost_y))
                     screen.blit(EATEN_SCORE, eaten_score_rect)
                     bg_eyes = True
+
+                    # Draw Ghosts
+                    frame = scared_ghost[ghost_frame_index]
+                
+                    draw_x = red_ghost_x - frame.get_width()/2
+                    draw_y = red_ghost_y - frame.get_height()/2
+                    if rg_eyes:
+                        if red_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif red_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif red_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif red_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+                    
+                    draw_x = pink_ghost_x - frame.get_width()/2
+                    draw_y = pink_ghost_y - frame.get_height()/2
+                    if pg_eyes:
+                        if pink_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif pink_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif pink_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif pink_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = orange_ghost_x - frame.get_width()/2
+                    draw_y = orange_ghost_y - frame.get_height()/2
+                    if og_eyes:
+                        if orange_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif orange_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif orange_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif orange_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+
                 elif ghost_eaten_color == "pink":
                     pygame.draw.circle(screen, BLACK, (pink_ghost_x, pink_ghost_y), player_radius)
                     # Eaten score      
                     eaten_score_rect = EATEN_SCORE.get_rect(center=(pink_ghost_x, pink_ghost_y))
                     screen.blit(EATEN_SCORE, eaten_score_rect)
                     pg_eyes = True
+
+                    # Draw Ghosts
+                    frame = scared_ghost[ghost_frame_index]
+                
+                    draw_x = blue_ghost_x - frame.get_width()/2
+                    draw_y = blue_ghost_y - frame.get_height()/2
+                    if bg_eyes:
+                        if blue_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif blue_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif blue_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif blue_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+                    
+                    draw_x = red_ghost_x - frame.get_width()/2
+                    draw_y = red_ghost_y - frame.get_height()/2
+                    if rg_eyes:
+                        if red_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif red_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif red_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif red_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = orange_ghost_x - frame.get_width()/2
+                    draw_y = orange_ghost_y - frame.get_height()/2
+                    if og_eyes:
+                        if orange_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif orange_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif orange_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif orange_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+
                 elif ghost_eaten_color == "orange":
                     pygame.draw.circle(screen, BLACK, (orange_ghost_x, orange_ghost_y), player_radius)
                     # Eaten score      
                     eaten_score_rect = EATEN_SCORE.get_rect(center=(orange_ghost_x, orange_ghost_y))
                     screen.blit(EATEN_SCORE, eaten_score_rect)
                     og_eyes = True
+
+                    # Draw Ghosts
+                    frame = scared_ghost[ghost_frame_index]
+                
+                    draw_x = blue_ghost_x - frame.get_width()/2
+                    draw_y = blue_ghost_y - frame.get_height()/2
+                    if bg_eyes:
+                        if blue_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif blue_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif blue_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif blue_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+                    
+                    draw_x = pink_ghost_x - frame.get_width()/2
+                    draw_y = pink_ghost_y - frame.get_height()/2
+                    if pg_eyes:
+                        if pink_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif pink_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif pink_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif pink_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+            
+                    draw_x = red_ghost_x - frame.get_width()/2
+                    draw_y = red_ghost_y - frame.get_height()/2
+                    if rg_eyes:
+                        if red_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        elif red_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        elif red_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        elif red_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
 
                 # After pause ends
                 if ghost_eaten_timer >= ghost_eaten_duration:
@@ -1520,13 +1715,13 @@ while running:
                     draw_y = red_ghost_y - frame.get_height()/2
                     if rg_eyes:
                         if red_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif red_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif red_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif red_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
             
@@ -1534,13 +1729,13 @@ while running:
                     draw_y = blue_ghost_y - frame.get_height()/2
                     if bg_eyes:
                         if blue_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif blue_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif blue_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif blue_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
             
@@ -1548,13 +1743,13 @@ while running:
                     draw_y = pink_ghost_y - frame.get_height()/2
                     if pg_eyes:
                         if pink_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif pink_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif pink_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif pink_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
             
@@ -1562,13 +1757,13 @@ while running:
                     draw_y = orange_ghost_y - frame.get_height()/2
                     if og_eyes:
                         if orange_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif orange_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif orange_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif orange_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
 
@@ -1579,13 +1774,13 @@ while running:
                     draw_y = red_ghost_y - frame.get_height()/2
                     if rg_eyes:
                         if red_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif red_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif red_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif red_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
             
@@ -1593,13 +1788,13 @@ while running:
                     draw_y = blue_ghost_y - frame.get_height()/2
                     if bg_eyes:
                         if blue_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif blue_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif blue_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif blue_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
                 
@@ -1607,13 +1802,13 @@ while running:
                     draw_y = pink_ghost_y - frame.get_height()/2
                     if pg_eyes:
                         if pink_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif pink_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif pink_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif pink_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
             
@@ -1621,13 +1816,13 @@ while running:
                     draw_y = orange_ghost_y - frame.get_height()/2
                     if og_eyes:
                         if orange_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif orange_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif orange_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif orange_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
                 elif frightened_timer >= 4 and not flashing_frightened_flipper:
@@ -1637,13 +1832,13 @@ while running:
                     draw_y = red_ghost_y - frame.get_height()/2
                     if rg_eyes:
                         if red_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif red_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif red_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif red_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
             
@@ -1651,13 +1846,13 @@ while running:
                     draw_y = blue_ghost_y - frame.get_height()/2
                     if bg_eyes:
                         if blue_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif blue_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif blue_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif blue_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
             
@@ -1665,13 +1860,13 @@ while running:
                     draw_y = pink_ghost_y - frame.get_height()/2
                     if pg_eyes:
                         if pink_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif pink_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif pink_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif pink_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
             
@@ -1908,13 +2103,13 @@ while running:
                 draw_y = red_ghost_y - frame.get_height()/2
                 if rg_eyes:
                     if red_direction == "up":
-                        screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                     elif red_direction == "down":
-                        screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                     elif red_direction == "left":
-                        screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                     elif red_direction == "right":
-                        screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                 else:
                     screen.blit(frame, (draw_x, draw_y))
                 
@@ -1925,13 +2120,13 @@ while running:
                 draw_y = blue_ghost_y - frame.get_height()/2
                 if bg_eyes:
                     if blue_direction == "up":
-                        screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                     elif blue_direction == "down":
-                        screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                     elif blue_direction == "left":
-                        screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                     elif blue_direction == "right":
-                        screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                 else:
                     screen.blit(frame, (draw_x, draw_y))
                 
@@ -1942,13 +2137,13 @@ while running:
                 draw_y = pink_ghost_y - frame.get_height()/2
                 if pg_eyes:
                     if pink_direction == "up":
-                        screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                     elif pink_direction == "down":
-                        screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                     elif pink_direction == "left":
-                        screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                     elif pink_direction == "right":
-                        screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                 else:
                     screen.blit(frame, (draw_x, draw_y))
                 
@@ -1959,13 +2154,13 @@ while running:
                 draw_y = orange_ghost_y - frame.get_height()/2
                 if og_eyes:
                     if orange_direction == "up":
-                        screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                     elif orange_direction == "down":
-                        screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                     elif orange_direction == "left":
-                        screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                     elif orange_direction == "right":
-                        screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                 else:
                     screen.blit(frame, (draw_x, draw_y))
 
