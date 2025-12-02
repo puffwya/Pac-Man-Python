@@ -1,4 +1,3 @@
-import copy
 from settings import *
 
 # Global Frightened State
@@ -238,12 +237,74 @@ def draw_pacman_frame(surface, mouth_angle, direction):
 # Checks if the current tile pacman is on is a pellet or not, sets tile to 2, adds to score, and removes 
 # pellet if so. Does nothing if not.
 def is_current_tile_pellet():
-    global player_x, player_y, player_score, waka_flip, eaten_pellets, red_direction, pink_direction, blue_direction, orange_direction, frightened_mode, frightened_timer
+    global player_x, player_y, player_radius, player_score, waka_flip, eaten_pellets, red_direction, pink_direction, blue_direction, orange_direction, frightened_mode, frightened_timer, p_one_up, pickup_x, pickup_y, pickup_frame, pickup_for_level, item_score_timer, pickup_score
     grid_row, grid_col = get_grid_pos(player_x, player_y)
+
+    item_row, item_col = get_grid_pos(pickup_x, pickup_y)
+
+    # Checks for item pickup
+    if grid_row == item_row and grid_col == item_col:
+        if pickup_frame == 0 and not pickup_for_level:
+            item_pickup.play()
+            player_score += 100
+            pickup_score = 100
+            pickup_frame += 1
+            pickup_for_level = True
+            item_score_timer = 0
+        elif pickup_frame == 1 and not pickup_for_level:
+            item_pickup.play()
+            player_score += 300
+            pickup_score = 300
+            pickup_frame += 1
+            pickup_for_level = True
+            item_score_timer = 0
+        elif pickup_frame == 2 and not pickup_for_level:
+            item_pickup.play()
+            player_score += 500
+            pickup_score = 500
+            pickup_frame += 1
+            pickup_for_level = True
+            item_score_timer = 0
+        elif pickup_frame == 3 and not pickup_for_level:
+            item_pickup.play()
+            player_score += 700
+            pickup_score = 700
+            pickup_frame += 1
+            pickup_for_level = True
+            item_score_timer = 0
+        elif pickup_frame == 4 and not pickup_for_level:
+            item_pickup.play()
+            player_score += 1000
+            pickup_score = 1000
+            pickup_frame += 1
+            pickup_for_level = True
+            item_score_timer = 0
+        elif pickup_frame == 5 and not pickup_for_level:
+            item_pickup.play()
+            player_score += 2000
+            pickup_score = 2000
+            pickup_frame += 1
+            pickup_for_level = True
+            item_score_timer = 0
+        elif pickup_frame == 6 and not pickup_for_level:
+            item_pickup.play()
+            player_score += 3000
+            pickup_score = 3000
+            pickup_frame += 1
+            pickup_for_level = True
+            item_score_time = 0
+        elif pickup_frame == 7 and not pickup_for_level:
+            item_pickup.play()
+            player_score += 5000
+            pickup_score = 5000
+            pickup_frame += 1
+            pickup_for_level = True
+            item_score_timer = 0
 
     # Checks if base pellet
     if level[grid_row][grid_col] == 0:
         player_score += 10
+        p_one_up += 10
         eaten_pellets += 1
         level[grid_row][grid_col] = 2
         waka_sound.play()
@@ -251,6 +312,7 @@ def is_current_tile_pellet():
     # Checks if power pellet
     elif level[grid_row][grid_col] == 4:
         player_score += 50
+        p_one_up += 50
         eaten_pellets += 1
         level[grid_row][grid_col] = 2
         waka_sound.play()
@@ -268,6 +330,25 @@ def is_current_tile_pellet():
         return True
 
     return False
+
+# --- Fruits/Pickups Setup ---
+scale_factor = TILE_SIZE // 12 - 0.1
+pickup_frames = []
+
+for i in range(8):
+    img = pygame.image.load(f"sprites/pacman-pickup-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    pickup_frames.append(img)
+
+# --- Scaled Pickups for display on right side of screen ---
+scaled_pickups = []
+scale_factor = TILE_SIZE // 12 - 0.7
+
+for img in pickup_frames:
+    w, h = img.get_size()
+    scaled = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    scaled_pickups.append(scaled)
 
 # --- Pacman Death Frame Setup ---
 scale_factor = TILE_SIZE // 12 - 0.1
@@ -533,7 +614,7 @@ def get_red_target(rg_eyes):
         r_ghost_speed = 1 
         return (8, 13)
     elif rg_eyes:
-        r_ghost_speed = 2
+        r_ghost_speed = 3
         center_row = len(level) // 2
         center_col = len(level[0]) // 2
         return (center_row, center_col)
@@ -560,7 +641,7 @@ def get_pink_target(pg_eyes):
         p_ghost_speed = 1
         return (8, 14)
     elif pg_eyes:
-        p_ghost_speed = 2
+        p_ghost_speed = 3
         center_row = len(level) // 2   
         center_col = len(level[0]) // 2
         return (center_row, center_col)
@@ -592,7 +673,7 @@ def get_blue_target(blinky_x, blinky_y, bg_eyes):
         b_ghost_speed = 1
         return(8, 14)
     elif bg_eyes:
-        b_ghost_speed = 2
+        b_ghost_speed = 3
         center_row = len(level) // 2   
         center_col = len(level[0]) // 2
         return (center_row, center_col)
@@ -646,7 +727,7 @@ def get_orange_target(clyde_x, clyde_y, og_eyes):
         o_ghost_speed = 1
         return (8, 13)
     elif og_eyes:
-        o_ghost_speed = 2
+        o_ghost_speed = 3
         center_row = len(level) // 2   
         center_col = len(level[0]) // 2
         return (center_row, center_col)
@@ -662,13 +743,13 @@ def target_frightened(ghost_x, ghost_y, ghost_eyes):
     # If in "eyes" mode target center tile and set speed to 3
     if ghost_eyes:
         if ghost_eyes == rg_eyes:
-            r_ghost_speed = 2
+            r_ghost_speed = 3
         if ghost_eyes == bg_eyes:
-            b_ghost_speed = 2
+            b_ghost_speed = 3
         if ghost_eyes == pg_eyes:
-            p_ghost_speed = 2
+            p_ghost_speed = 3
         if ghost_eyes == og_eyes:
-            o_ghost_speed = 2
+            o_ghost_speed = 3
         center_row = len(level) // 2
         center_col = len(level[0]) // 2
         return (center_row, center_col)
@@ -739,7 +820,7 @@ def is_ghost_collision(px, py, gx, gy):
         return True
 
 def eat_ghost(color):
-    global ghost_eaten, ghost_eaten_color, ghost_eaten_timer, player_score, ghost_eat_score
+    global ghost_eaten, ghost_eaten_color, ghost_eaten_timer, player_score, ghost_eat_score, p_one_up
 
     ghost_eaten = True
     ghost_eaten_color = color
@@ -749,6 +830,7 @@ def eat_ghost(color):
     eating_ghost.play()
 
     player_score += ghost_eat_score
+    p_one_up += ghost_eat_score
 
 def restart_game():
     global game_start, player_lives, game_start_timer, player_x, player_y, red_ghost_x, red_ghost_y, blue_ghost_x, blue_ghost_y, pink_ghost_x, pink_ghost_y, orange_ghost_x, orange_ghost_y, current_direction,pacman_frame_index, next_direction, pacman_frame_tick, red_direction, red_last_dir, pink_direction, pink_last_dir, blue_direction, blue_last_dir, orange_direction, orange_last_dir, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed, rg_eyes, bg_eyes, pg_eyes, og_eyes, player_speed
@@ -845,6 +927,22 @@ def check_center_tile():
     if og_eyes and near_center(o_row, o_col):
         og_eyes = False
         o_ghost_speed = 1
+
+def check_if_off_screen():
+    global red_ghost_x, red_ghost_y, pink_ghost_x, pink_ghost_y, blue_ghost_x, blue_ghost_y, orange_ghost_x, orange_ghost_y, screen_width, screen_height
+
+    if red_ghost_x < 0 or red_ghost_x > screen_width or red_ghost_y < 0 or red_ghost_y > screen_height:
+        red_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
+        red_ghost_y = TILE_SIZE * 10 + TILE_SIZE/2
+    if pink_ghost_x < 0 or pink_ghost_x > screen_width or pink_ghost_y < 0 or pink_ghost_y > screen_height:
+        pink_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
+        pink_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+    if blue_ghost_x < 0 or blue_ghost_x > screen_width or blue_ghost_y < 0 or blue_ghost_y > screen_height:
+        blue_ghost_x = TILE_SIZE * 12 + TILE_SIZE/2
+        blue_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+    if orange_ghost_x < 0 or orange_ghost_x > screen_width or orange_ghost_y < 0 or orange_ghost_y > screen_height:
+        orange_ghost_x = TILE_SIZE * 14 + TILE_SIZE/2
+        orange_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
 
 clock = pygame.time.Clock()
 
@@ -946,6 +1044,16 @@ while running:
             # Draw the wedge
             pygame.draw.polygon(screen, BLACK, points)
 
+        # Draw Items picked-up in bottom right of screen
+        SPACING = 8
+        item_w = scaled_pickups[0].get_width()
+        start_x = screen_width - item_w - 10
+        y = screen_height - item_w - 10
+
+        for i in range(pickup_frame):
+            x = start_x - i * (item_w + SPACING)
+            screen.blit(scaled_pickups[i], (x, y))
+
     if game_start:
         if play_once:
             pygame.mixer.music.play()
@@ -975,8 +1083,35 @@ while running:
                 if init_spawn == True:
                     player_lives -= 1
                     init_spawn = False
+
                 # Draw Pac-Man
                 draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
+
+                # Draw Ghosts
+                r_ghost_frames = red_ghost_sprites[red_direction]
+                frame = r_ghost_frames[ghost_frame_index] 
+                draw_x = red_ghost_x - frame.get_width()/2 
+                draw_y = red_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+                
+                b_ghost_frames = blue_ghost_sprites[blue_direction]
+                frame = b_ghost_frames[ghost_frame_index]   
+                draw_x = blue_ghost_x - frame.get_width()/2 
+                draw_y = blue_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+                
+                p_ghost_frames = pink_ghost_sprites[pink_direction]
+                frame = p_ghost_frames[ghost_frame_index]   
+                draw_x = pink_ghost_x - frame.get_width()/2 
+                draw_y = pink_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+                
+                o_ghost_frames = orange_ghost_sprites[orange_direction]
+                frame = o_ghost_frames[ghost_frame_index]
+                draw_x = orange_ghost_x - frame.get_width()/2 
+                draw_y = orange_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+
             # After the duration, exit start state
             if game_start_timer >= GAME_START_DURATION:
                 game_start = False
@@ -1004,15 +1139,69 @@ while running:
                 if init_spawn == True:  
                     player_lives -= 1
                     init_spawn = False
+
                 # Draw Pac-Man   
                 draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
+
+                # Draw Ghosts
+                r_ghost_frames = red_ghost_sprites[red_direction]
+                frame = r_ghost_frames[ghost_frame_index]
+                draw_x = red_ghost_x - frame.get_width()/2
+                draw_y = red_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+
+                b_ghost_frames = blue_ghost_sprites[blue_direction]
+                frame = b_ghost_frames[ghost_frame_index]
+                draw_x = blue_ghost_x - frame.get_width()/2 
+                draw_y = blue_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+
+                p_ghost_frames = pink_ghost_sprites[pink_direction]
+                frame = p_ghost_frames[ghost_frame_index]
+                draw_x = pink_ghost_x - frame.get_width()/2 
+                draw_y = pink_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+
+                o_ghost_frames = orange_ghost_sprites[orange_direction]
+                frame = o_ghost_frames[ghost_frame_index]
+                draw_x = orange_ghost_x - frame.get_width()/2 
+                draw_y = orange_ghost_y - frame.get_height()/2
+                screen.blit(frame, (draw_x, draw_y))
+
             # After the duration, exit start state
             if game_start_timer >= GAME_START_DURATION:
                 game_start = False
     # If not in "Game Intro" state, run the following
     else:
+
+        if p_one_up >= 10000:
+            one_up.play()
+            player_lives += 1
+            p_one_up = 0
+
+        # Check if a ghost went off screen, reset to starting position if so
+        check_if_off_screen()
   
         if frightened_mode:
+
+            # Spawn item pickup in frightened mode if needed
+            if eaten_pellets >= 100 and eaten_pellets < 150:
+                
+                # Spawn item pickup
+                if not pickup_for_level:
+                    if chosen_lvl == 1:
+                        pickup_x = TILE_SIZE * 13.5
+                        pickup_y = TILE_SIZE * 20.5 - 13
+                    elif chosen_lvl == 2:
+                        pickup_x = TILE_SIZE * 13.5
+                        pickup_y = TILE_SIZE * 19.5 - 13
+                    screen.blit(pickup_frames[pickup_frame], (pickup_x, pickup_y))
+                if item_score_timer <= 1 and pickup_for_level:
+                    PICKUP_SCORE = g_eat_font.render(str(pickup_score), True, CYAN)
+                    pickup_score_rect = PICKUP_SCORE.get_rect(center=(pickup_x+TILE_SIZE//2, pickup_y+TILE_SIZE//2 - 2))
+                    screen.blit(PICKUP_SCORE, pickup_score_rect)
+                    item_score_timer += dt
+
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.load("sounds/frightenedMode.mp3")
                 pygame.mixer.music.play()
@@ -1021,12 +1210,14 @@ while running:
                 level = generate_level()
                 eaten_pellets = 0
                 player_lives += 1
+                pickup_for_level = False
                 frightened_mode = False
                 restart_game()
             elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
                 level = generate_level()
                 eaten_pellets = 0
                 player_lives += 1
+                pickup_for_level = False
                 frightened_mode = False
                 restart_game()
         else:
@@ -1041,6 +1232,22 @@ while running:
                         pygame.mixer.music.load("sounds/ghost_siren2.mp3")
                         pygame.mixer.music.play()
                 elif eaten_pellets >= 100 and eaten_pellets < 150:
+
+                    # Spawn item pickup
+                    if not pickup_for_level:
+                        if chosen_lvl == 1:
+                            pickup_x = TILE_SIZE * 13.5
+                            pickup_y = TILE_SIZE * 20.5 - 13
+                        elif chosen_lvl == 2:
+                            pickup_x = TILE_SIZE * 13.5
+                            pickup_y = TILE_SIZE * 19.5 - 13
+                        screen.blit(pickup_frames[pickup_frame], (pickup_x, pickup_y))
+                    if item_score_timer <= 1 and pickup_for_level:
+                        PICKUP_SCORE = g_eat_font.render(str(pickup_score), True, CYAN)
+                        pickup_score_rect = PICKUP_SCORE.get_rect(center=(pickup_x+TILE_SIZE//2, pickup_y+TILE_SIZE//2 - 2))
+                        screen.blit(PICKUP_SCORE, pickup_score_rect)
+                        item_score_timer += dt
+
                     if not pygame.mixer.music.get_busy():
                         pygame.mixer.music.load("sounds/ghost_siren3.mp3")
                         pygame.mixer.music.play()
@@ -1056,11 +1263,15 @@ while running:
             if eaten_pellets == lvl1MinEaten and chosen_lvl == 1:
                 level = generate_level()
                 eaten_pellets = 0
+                pickup_for_level = False
+                frightened_mode = False
                 player_lives += 1
                 restart_game()
             elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
                 level = generate_level()
                 eaten_pellets = 0
+                pickup_for_level = False
+                frightened_mode = False
                 player_lives += 1
                 restart_game()
 

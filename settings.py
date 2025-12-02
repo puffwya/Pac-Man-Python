@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 import math
+import copy
 from levels import ALL_LEVELS, LEVEL_1, LEVEL_2
 
 # Initialize Pygame
@@ -28,8 +29,9 @@ screen_height = ROWS * TILE_SIZE
 screen = pygame.display.set_mode((screen_width, screen_height))
 
 # Lives and Score
-player_score = 0 
-eaten_pellets = 0
+player_score = 0
+p_one_up = 0
+eaten_pellets = 75
 player_lives = 5
 
 # Game start variables
@@ -56,6 +58,8 @@ CYAN = (0, 255, 255)
 waka_sound = pygame.mixer.Sound("sounds/PacmanWaka.mp3")
 eating_ghost = pygame.mixer.Sound("sounds/PacmanEatingGhost.mp3")
 pacman_fail = pygame.mixer.Sound("sounds/PacmanFail.mp3")
+one_up = pygame.mixer.Sound("sounds/PacmanOneUp.mp3")
+item_pickup = pygame.mixer.Sound("sounds/PacmanItemPickup.mp3")
 
 # Power Pellet "Blinking" Variables
 power_pellet_flipper = True
@@ -122,3 +126,11 @@ death_timer = 0.0
 death_anim_frame = 0
 DEATH_ANIM_SPEED = 0.12  # seconds between frames
 death_sound_once = False
+
+# Fruits/Pickups vars
+pickup_frame = 0
+pickup_x = 0
+pickup_y = 0
+pickup_for_level = False
+item_score_timer = 0
+pickup_score = 0
