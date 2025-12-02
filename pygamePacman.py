@@ -1874,13 +1874,13 @@ while running:
                     draw_y = orange_ghost_y - frame.get_height()/2
                     if og_eyes:
                         if orange_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
                         elif orange_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
                         elif orange_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
                         elif orange_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
                     else:
                         screen.blit(frame, (draw_x, draw_y))
 
