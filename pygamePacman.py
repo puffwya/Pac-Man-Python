@@ -982,6 +982,125 @@ def check_if_off_screen():
         orange_ghost_x = TILE_SIZE * 14 + TILE_SIZE/2
         orange_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
 
+def reset_game_vars():
+    global player_x, player_y, player_score, p_one_up, eaten_pellets, player_lives, game_start, game_start_timer, play_once, init_spawn, g_siren_start, power_pellet_flipper, current_direction, next_direction, player_speed, pacman_frame_index, pacman_frame_tick, start, end, endL, startL, red_ghost_direction, red_last_dir, pink_ghost_direction, pink_last_dir, blue_ghost_direction, blue_last_dir, orange_ghost_direction, orange_last_dir, ghost_eat_score, rg_eyes, pg_eyes, bg_eyes, og_eyes, ghost_eaten, ghost_eaten_color, ghost_eaten_timer, pickup_frame, pickup_x, pickup_y, pickup_for_level, item_score_timer, pickup_score, red_ghost_x, red_ghost_y, pink_ghost_x, pink_ghost_y, blue_ghost_x, blue_ghost_y, orange_ghost_x, orange_ghost_y, r_ghost_speed, p_ghost_speed, b_ghost_speed, o_ghost_speed, start_timer, power_pellet_flipper_start_screen, start_chase_timer, start_screen_pac_x, start_screen_pac_y, start_screen_draw_x_red, start_screen_draw_x_pink, start_screen_draw_x_blue, start_screen_draw_x_orange, start_screen_draw_y, eaten_start_power_pellet, pacman_start_screen_right_frame, start_eaten_pause, start_eaten_red, start_eaten_pink, start_eaten_blue, start_eaten_orange, start_screen_ghost_eat_score, start_screen_ghost_eaten_timer
+
+    pygame.mixer.music.load("sounds/Pac-Man starting sound effect.mp3")
+
+    # Reset start sequence vars
+    power_pellet_flipper_start_screen = True
+    start_chase_timer = 0.0
+    start_screen_pac_x = screen_width + 30
+    start_screen_pac_y = screen_height//2-10
+    start_screen_draw_x_red = screen_width + 75
+    start_screen_draw_x_pink = screen_width + 110
+    start_screen_draw_x_blue = screen_width + 145
+    start_screen_draw_x_orange = screen_width + 180
+    start_screen_draw_y = screen_height//2-10
+    eaten_start_power_pellet = False
+    pacman_start_screen_right_frame = 0
+    start_eaten_pause = False
+    start_eaten_red = False
+    start_eaten_pink = False
+    start_eaten_blue = False
+    start_eaten_orange = False
+    start_screen_ghost_eat_score = 200
+    start_screen_ghost_eaten_timer = 0
+
+    # Reset player and ghost positions and speeds
+    if chosen_lvl == 1:
+        player_x = TILE_SIZE * 13.5
+        player_y = TILE_SIZE * 20.5
+    elif chosen_lvl == 2:
+        player_x = TILE_SIZE * 13.5
+        player_y = TILE_SIZE * 19.5
+
+    # Reset red ghost starting position and speed
+    red_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
+    red_ghost_y = TILE_SIZE * 10 + TILE_SIZE/2
+    r_ghost_speed = 1
+
+    # Reset pink ghost starting position and speed
+    pink_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
+    pink_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+    p_ghost_speed = 1
+
+    # Reset blue ghost starting position and speed
+    blue_ghost_x = TILE_SIZE * 12 + TILE_SIZE/2
+    blue_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+    b_ghost_speed = 1
+
+    # Reset orange ghost starting position and speed
+    orange_ghost_x = TILE_SIZE * 14 + TILE_SIZE/2
+    orange_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+    o_ghost_speed = 1
+
+    start_timer = 0.0
+
+    # Lives and Score
+    player_score = 0
+    p_one_up = 0
+    eaten_pellets = 0
+    player_lives = 5
+
+    # Game start variables
+    game_start = True
+    game_start_timer = 0
+    play_once = True
+    init_spawn = True
+    g_siren_start = True
+
+    # Power Pellet "Blinking" Variables
+    power_pellet_flipper = True
+
+    current_direction = None
+    next_direction = None
+    player_speed = 2
+
+    pacman_frame_index = 0
+    pacman_frame_tick = 0
+
+    start = 0
+    end = 0
+    startL = 0
+    endL = 0
+
+    # Ghost directional variables
+    red_direction = "left"          # current movement direction
+    red_last_dir = "left"           # needed to prevent reversing
+    
+    pink_direction = "down"
+    pink_last_dir = "down"
+        
+    blue_direction = "up"
+    blue_last_dir = "up"
+        
+    orange_direction = "up"
+    orange_last_dir = "up"
+
+    # Ghost eaten score (200 at the start of a frightened state and increase by x2 for each ghost eaten)
+    ghost_eat_score = 200
+
+    # Ghost eyes state
+    rg_eyes = False
+    bg_eyes = False
+    pg_eyes = False
+    og_eyes = False
+
+    # Ghost eaten vars
+    ghost_eaten = False
+    ghost_eaten_color = None
+    ghost_eaten_timer = 0
+
+    # Fruits/Pickups vars
+    pickup_frame = 0
+    pickup_x = 0
+    pickup_y = 0
+    pickup_for_level = False
+    item_score_timer = 0
+    pickup_score = 0
+    
+
 clock = pygame.time.Clock()
 
 # Game loop
@@ -998,71 +1117,83 @@ while running:
 
     # Starting screen
     if game_state == "START_SCREEN":
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_RETURN]:
+            credit_sound.play()
+            game_state = "PRESS_PLAY"
+
         dt = clock.get_time() / 1000.0  # convert ms → seconds
-        CHARACTER_NICKNAME = render_stretched_text("CHARACTER   /   NICKNAME", WHITE, ready_font, scale_x=1.3)
-        c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2, screen_height//2-350))
-        screen.blit(CHARACTER_NICKNAME, c_n_rect)
+
+        if start_timer <= 23.0:
+            PRESS_ENTER = render_stretched_text("PRESS  ENTER  OR  RETURN", WHITE, ready_font, scale_x=1.3)
+            p_e_rect = PRESS_ENTER.get_rect(center=(screen_width//2, screen_height//2-425))
+            screen.blit(PRESS_ENTER, p_e_rect)
+
+            CHARACTER_NICKNAME = render_stretched_text("CHARACTER   /   NICKNAME", WHITE, ready_font, scale_x=1.3)
+            c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2, screen_height//2-350))
+            screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
         start_timer += dt
 
         # Draw red ghost + info
-        if start_timer >= 1.5:
+        if start_timer >= 1.5 and start_timer <= 23.0:
             # --- draw Red Ghost ---
             ghost_img = red_ghost_sprites["right"][0]
             screen.blit(ghost_img, (185, 140))
-            if start_timer >= 2.0:
+            if start_timer >= 2.0 and start_timer <= 23.0:
                 CHARACTER_NICKNAME = render_stretched_text("- SHADOW", (255, 0, 0), ready_font, scale_x=1.3)
                 c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-110, screen_height//2-313))
                 screen.blit(CHARACTER_NICKNAME, c_n_rect)
-            if start_timer >= 2.5:
+            if start_timer >= 2.5 and start_timer <= 23.0:
                 CHARACTER_NICKNAME = render_stretched_text('"BLINKY"', (255, 0, 0), ready_font, scale_x=1.3)
                 c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+100, screen_height//2-313))
                 screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
         # Draw pink ghost + info
-        if start_timer >= 3.5:
+        if start_timer >= 3.5 and start_timer <= 23.0:
             # --- draw Pink Ghost ---
             ghost_img = pink_ghost_sprites["right"][0]
             screen.blit(ghost_img, (185, 200))
-            if start_timer >= 4.0:
+            if start_timer >= 4.0 and start_timer <= 23.0:
                 CHARACTER_NICKNAME = render_stretched_text("- SPEEDY", (255, 184, 255), ready_font, scale_x=1.3)
                 c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-113, screen_height//2-253))
                 screen.blit(CHARACTER_NICKNAME, c_n_rect)
-            if start_timer >= 4.5:
+            if start_timer >= 4.5 and start_timer <= 23.0:
                 CHARACTER_NICKNAME = render_stretched_text('"PINKY"', (255, 184, 255), ready_font, scale_x=1.3)
                 c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+90, screen_height//2-253))
                 screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
         # Draw blue ghost + info
-        if start_timer >= 5.5:
+        if start_timer >= 5.5 and start_timer <= 23.0:
             # --- draw Blue Ghost ---
             ghost_img = blue_ghost_sprites["right"][0]
             screen.blit(ghost_img, (185, 260))
-            if start_timer >= 6.0:   
+            if start_timer >= 6.0 and start_timer <= 23.0:   
                 CHARACTER_NICKNAME = render_stretched_text("- BASHFUL", CYAN, ready_font, scale_x=1.3)
                 c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-102, screen_height//2-193))
                 screen.blit(CHARACTER_NICKNAME, c_n_rect)
-            if start_timer >= 6.5:  
+            if start_timer >= 6.5 and start_timer <= 23.0:  
                 CHARACTER_NICKNAME = render_stretched_text('"INKY"', CYAN, ready_font, scale_x=1.3)
                 c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+80, screen_height//2-193))
                 screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
         # Draw orange ghost + info
-        if start_timer >= 7.5:
+        if start_timer >= 7.5 and start_timer <= 23.0:
             # --- draw Orange Ghost ---
             ghost_img = orange_ghost_sprites["right"][0]
             screen.blit(ghost_img, (185, 320))
-            if start_timer >= 8.0:
+            if start_timer >= 8.0 and start_timer <= 23.0:
                 CHARACTER_NICKNAME = render_stretched_text("- POKEY", (255, 184, 82), ready_font, scale_x=1.3)
                 c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-121, screen_height//2-133))
                 screen.blit(CHARACTER_NICKNAME, c_n_rect)
-            if start_timer >= 8.5:
+            if start_timer >= 8.5 and start_timer <= 23.0:
                 CHARACTER_NICKNAME = render_stretched_text('"CLYDE"', (255, 184, 82), ready_font, scale_x=1.3)
                 c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+94, screen_height//2-133))
                 screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
         # Draw pellets info
-        if start_timer >= 9.5:
+        if start_timer >= 9.5 and start_timer <= 23.0:
             # Draw base pellet + info
             pygame.draw.circle(screen, PEACH, (screen_width//2-100, screen_height//2+100), TILE_SIZE // 2 - 12)
             CHARACTER_NICKNAME = render_stretched_text("10", WHITE, ready_font, scale_x=1.3)
@@ -1086,7 +1217,7 @@ while running:
             screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
         # Demo power pellet
-        if start_timer >= 10.5:
+        if start_timer >= 10.5 and start_timer <= 23.0:
             if not eaten_start_power_pellet:
                 # Draw power pellet for pacman to eat
                 if power_pellet_flipper_start_screen:
@@ -1096,7 +1227,7 @@ while running:
                 pygame.draw.circle(screen, power_color, (185, screen_height//2), TILE_SIZE // 2 - 5)
 
         # Begin "blinking" power pellet and pacman ghost sequence
-        if start_timer >= 11.5:
+        if start_timer >= 11.5 and start_timer <= 23.0:
             current_start_screen_time = pygame.time.get_ticks()
 
             start_chase_timer += dt
@@ -1104,6 +1235,7 @@ while running:
             PAC_MOVE_SPEED = 175
             GHOST_MOVE_SPEED = 179
 
+            # Ghosts chasing pacman
             if (not abs(start_screen_pac_x - 185) < 2) and (not eaten_start_power_pellet):
 
                 # --- advance animation frames ---   
@@ -1143,6 +1275,7 @@ while running:
                 ghost_img = orange_ghost_sprites["left"][ghost_intermission_index]
                 screen.blit(ghost_img, (start_screen_draw_x_orange, start_screen_draw_y))
 
+            # Pacman chasing ghosts
             else:
                 eaten_start_power_pellet = True
                 PAC_MOVE_SPEED = 190
@@ -1243,6 +1376,51 @@ while running:
             if current_start_screen_time - last_pellet_blink_start_screen > POWER_PELLET_BLINK_INTERVAL:
                 power_pellet_flipper_start_screen = not power_pellet_flipper_start_screen
                 last_pellet_blink_start_screen = current_start_screen_time
+
+        if start_timer > 23.0:
+            # Starting Screen vars
+            start_timer = 0.0
+            power_pellet_flipper_start_screen = True
+            start_chase_timer = 0.0
+            start_screen_pac_x = screen_width + 30
+            start_screen_pac_y = screen_height//2-10
+            start_screen_draw_x_red = screen_width + 75
+            start_screen_draw_x_pink = screen_width + 110
+            start_screen_draw_x_blue = screen_width + 145
+            start_screen_draw_x_orange = screen_width + 180
+            start_screen_draw_y = screen_height//2-10
+            eaten_start_power_pellet = False
+            pacman_start_screen_right_frame = 0
+            start_eaten_pause = False
+            start_eaten_red = False
+            start_eaten_pink = False
+            start_eaten_blue = False
+            start_eaten_orange = False
+            start_screen_ghost_eat_score = 200
+            start_screen_ghost_eaten_timer = 0
+
+    # Draws press play screen (would be after inserting token in arcade machine)
+    elif game_state == "PRESS_PLAY":
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            game_state = "GAME_PLAY"
+
+        PUSH_BUTTON = render_stretched_text("PUSH  SPACE  BUTTON", (255, 184, 82), ready_font, scale_x=1.3)
+        p_b_rect = PUSH_BUTTON.get_rect(center=(screen_width//2, screen_height//2-210))
+        screen.blit(PUSH_BUTTON, p_b_rect)
+
+        ONE_PLAYER = render_stretched_text("1  PLAYER  ONLY", CYAN, ready_font, scale_x=1.3)
+        o_p_rect = ONE_PLAYER.get_rect(center=(screen_width//2, screen_height//2-110))
+        screen.blit(ONE_PLAYER, o_p_rect)
+
+        BONUS_PAC = render_stretched_text("BONUS  PAC-MAN  FOR  10000", PEACH, ready_font, scale_x=1.3)
+        p_b_rect = BONUS_PAC.get_rect(center=(screen_width//2-30, screen_height//2-10))
+        screen.blit(BONUS_PAC, p_b_rect)
+
+        PTS = render_stretched_text("PTS", PEACH, g_eat_font, scale_x=1.6)
+        p_t_rect = PTS.get_rect(center=(screen_width//2+217, screen_height//2-8))
+        screen.blit(PTS, p_t_rect)
 
     # Intermission #1
     elif game_state == "INTERMISSION":
@@ -2354,12 +2532,30 @@ while running:
                             pygame.display.flip()
                     death_timer += dt
 
+                    if death_timer < 4.0 and death_timer >= 3.0 and player_lives <= 0:
+                        if chosen_lvl == 1:
+                            GAME_OVER_TXT = render_stretched_text("GAME      OVER", (255, 0, 0), ready_font, scale_x=1.5)
+                            offset = TILE_SIZE * 5
+                            row, col = get_pixel_pos(13,10)
+                            game_over_rect = GAME_OVER_TXT.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                            screen.blit(GAME_OVER_TXT, game_over_rect)
+                        elif chosen_lvl == 2:
+                            GAME_OVER_TXT = render_stretched_text("GAME      OVER", (255, 0, 0), ready_font, scale_x=1.5)
+                            offset = TILE_SIZE * 6
+                            row, col = get_pixel_pos(13,10)
+                            game_over_rect = GAME_OVER_TXT.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                            screen.blit(GAME_OVER_TXT, game_over_rect)
+
                     if death_timer >= 4.0:
                         # ---- Animation finished: clean up & restart game ----
                         del death_started
                         pacman_dying = False
                         death_sound_once = False
-                        restart_game()
+                        if player_lives <= 0:
+                            game_state = "START_SCREEN"
+                            reset_game_vars()
+                        else:
+                            restart_game()
 
                 else:
 

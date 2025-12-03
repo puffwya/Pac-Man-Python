@@ -32,7 +32,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 player_score = 0
 p_one_up = 0
 eaten_pellets = 0
-player_lives = 5
+player_lives = 1
 
 # Game start variables
 game_start = True
@@ -61,6 +61,7 @@ pacman_fail = pygame.mixer.Sound("sounds/PacmanFail.mp3")
 one_up = pygame.mixer.Sound("sounds/PacmanOneUp.mp3")
 item_pickup = pygame.mixer.Sound("sounds/PacmanItemPickup.mp3")
 intermission_song = pygame.mixer.Sound("sounds/PacmanIntermission.mp3")
+credit_sound = pygame.mixer.Sound("sounds/PacmanCreditSound.mp3")
 
 # Power Pellet "Blinking" Variables
 power_pellet_flipper = True
@@ -179,5 +180,5 @@ start_eaten_orange = False
 start_screen_ghost_eat_score = 200
 start_screen_ghost_eaten_timer = 0
 
-# Game State var
+# Game State var (START_SCREEN, PRESS_PLAY, INTERMISSION, GAME_PLAY)
 game_state = "START_SCREEN"
