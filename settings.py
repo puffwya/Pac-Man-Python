@@ -61,6 +61,7 @@ pacman_fail = pygame.mixer.Sound("sounds/PacmanFail.mp3")
 one_up = pygame.mixer.Sound("sounds/PacmanOneUp.mp3")
 item_pickup = pygame.mixer.Sound("sounds/PacmanItemPickup.mp3")
 intermission_song = pygame.mixer.Sound("sounds/PacmanIntermission.mp3")
+intermission_song2 = pygame.mixer.Sound("sounds/PacmanIntermission2.mp3")
 credit_sound = pygame.mixer.Sound("sounds/PacmanCreditSound.mp3")
 
 # Power Pellet "Blinking" Variables
@@ -157,6 +158,10 @@ INTERMISSION_PHASE = 1
 
 intermission_play_song_once = False
 
+rip_seq = False
+
+intermission_draw_once = False
+
 completed_lvls = 0
 
 # Starting Screen vars
@@ -180,5 +185,5 @@ start_eaten_orange = False
 start_screen_ghost_eat_score = 200
 start_screen_ghost_eaten_timer = 0
 
-# Game State var (START_SCREEN, PRESS_PLAY, INTERMISSION, GAME_PLAY)
+# Game State var (START_SCREEN, PRESS_PLAY, INTERMISSION, INTERMISSION2, INTERMISSION3, GAME_PLAY)
 game_state = "START_SCREEN"

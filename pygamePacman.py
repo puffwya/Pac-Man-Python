@@ -387,6 +387,33 @@ for i in range(3):
     img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
     pacman_intermission_frames_big.append(img)
 
+scale_factor = TILE_SIZE // 12 - 0.1
+red_ghost_rip = []
+
+for i in range(10): 
+    img = pygame.image.load(f"sprites/red-ghost-rip-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    red_ghost_rip.append(img)
+
+scale_factor = TILE_SIZE // 12 - 0.1
+red_ghost_repair = []
+        
+for i in range(2):
+    img = pygame.image.load(f"sprites/red-ghost-repair-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    red_ghost_repair.append(img)
+
+scale_factor = TILE_SIZE // 12 - 0.1
+red_ghost_naked = []
+        
+for i in range(2):
+    img = pygame.image.load(f"sprites/red-ghost-naked-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    red_ghost_naked.append(img)
+
 # --- Pacman Death Frames Setup ---
 scale_factor = TILE_SIZE // 12 - 0.1
 pacman_death_frames = []  
@@ -870,12 +897,16 @@ def eat_ghost(color):
     p_one_up += ghost_eat_score
 
 def restart_game():
-    global game_start, player_lives, game_start_timer, player_x, player_y, red_ghost_x, red_ghost_y, blue_ghost_x, blue_ghost_y, pink_ghost_x, pink_ghost_y, orange_ghost_x, orange_ghost_y, current_direction,pacman_frame_index, next_direction, pacman_frame_tick, red_direction, red_last_dir, pink_direction, pink_last_dir, blue_direction, blue_last_dir, orange_direction, orange_last_dir, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed, rg_eyes, bg_eyes, pg_eyes, og_eyes, player_speed, play_once
+    global game_start, player_lives, game_start_timer, player_x, player_y, red_ghost_x, red_ghost_y, blue_ghost_x, blue_ghost_y, pink_ghost_x, pink_ghost_y, orange_ghost_x, orange_ghost_y, current_direction,pacman_frame_index, next_direction, pacman_frame_tick, red_direction, red_last_dir, pink_direction, pink_last_dir, blue_direction, blue_last_dir, orange_direction, orange_last_dir, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed, rg_eyes, bg_eyes, pg_eyes, og_eyes, player_speed, play_once, intermission_pac_x, g_intermission_draw_x
+
     game_start = True
     game_start_timer = 120
     player_lives -= 1
     player_speed = 2
     play_once = False
+
+    intermission_pac_x = screen_width + 15
+    g_intermission_draw_x = screen_width + 75
 
     # Reset red ghost starting position and speed
     red_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
@@ -983,7 +1014,7 @@ def check_if_off_screen():
         orange_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
 
 def reset_game_vars():
-    global player_x, player_y, player_score, p_one_up, eaten_pellets, player_lives, game_start, game_start_timer, play_once, init_spawn, g_siren_start, power_pellet_flipper, current_direction, next_direction, player_speed, pacman_frame_index, pacman_frame_tick, start, end, endL, startL, red_ghost_direction, red_last_dir, pink_ghost_direction, pink_last_dir, blue_ghost_direction, blue_last_dir, orange_ghost_direction, orange_last_dir, ghost_eat_score, rg_eyes, pg_eyes, bg_eyes, og_eyes, ghost_eaten, ghost_eaten_color, ghost_eaten_timer, pickup_frame, pickup_x, pickup_y, pickup_for_level, item_score_timer, pickup_score, red_ghost_x, red_ghost_y, pink_ghost_x, pink_ghost_y, blue_ghost_x, blue_ghost_y, orange_ghost_x, orange_ghost_y, r_ghost_speed, p_ghost_speed, b_ghost_speed, o_ghost_speed, start_timer, power_pellet_flipper_start_screen, start_chase_timer, start_screen_pac_x, start_screen_pac_y, start_screen_draw_x_red, start_screen_draw_x_pink, start_screen_draw_x_blue, start_screen_draw_x_orange, start_screen_draw_y, eaten_start_power_pellet, pacman_start_screen_right_frame, start_eaten_pause, start_eaten_red, start_eaten_pink, start_eaten_blue, start_eaten_orange, start_screen_ghost_eat_score, start_screen_ghost_eaten_timer
+    global player_x, player_y, player_score, p_one_up, eaten_pellets, player_lives, game_start, game_start_timer, play_once, init_spawn, g_siren_start, power_pellet_flipper, current_direction, next_direction, player_speed, pacman_frame_index, pacman_frame_tick, start, end, endL, startL, red_ghost_direction, red_last_dir, pink_ghost_direction, pink_last_dir, blue_ghost_direction, blue_last_dir, orange_ghost_direction, orange_last_dir, ghost_eat_score, rg_eyes, pg_eyes, bg_eyes, og_eyes, ghost_eaten, ghost_eaten_color, ghost_eaten_timer, pickup_frame, pickup_x, pickup_y, pickup_for_level, item_score_timer, pickup_score, red_ghost_x, red_ghost_y, pink_ghost_x, pink_ghost_y, blue_ghost_x, blue_ghost_y, orange_ghost_x, orange_ghost_y, r_ghost_speed, p_ghost_speed, b_ghost_speed, o_ghost_speed, start_timer, power_pellet_flipper_start_screen, start_chase_timer, start_screen_pac_x, start_screen_pac_y, start_screen_draw_x_red, start_screen_draw_x_pink, start_screen_draw_x_blue, start_screen_draw_x_orange, start_screen_draw_y, eaten_start_power_pellet, pacman_start_screen_right_frame, start_eaten_pause, start_eaten_red, start_eaten_pink, start_eaten_blue, start_eaten_orange, start_screen_ghost_eat_score, start_screen_ghost_eaten_timer, intermission_pac_x, g_intermission_draw_x
 
     pygame.mixer.music.load("sounds/Pac-Man starting sound effect.mp3")
 
@@ -1006,6 +1037,9 @@ def reset_game_vars():
     start_eaten_orange = False
     start_screen_ghost_eat_score = 200
     start_screen_ghost_eaten_timer = 0
+
+    intermission_pac_x = screen_width + 15
+    g_intermission_draw_x = screen_width + 75
 
     # Reset player and ghost positions and speeds
     if chosen_lvl == 1:
@@ -1505,6 +1539,158 @@ while running:
                 intermission_play_song_once = False 
                 restart_game()
 
+    # Intermission #2
+    elif game_state == "INTERMISSION2":
+            
+        if not intermission_play_song_once:
+            intermission_song2.play()
+            intermission_play_song_once = True
+    
+        dt = clock.get_time() / 1000.0  # convert ms → seconds
+        
+            
+        # --- update timers ---
+        intermission_timer += dt
+        FRAME_SPEED = 0.04     # seconds per frame
+        PAC_MOVE_SPEED = 175        # pixels per second
+        if rip_seq:
+            GHOST_MOVE_SPEED = 0
+        else:
+            GHOST_MOVE_SPEED = 181        # pixels per second
+        
+        # --- advance animation frames ---
+        if intermission_timer >= FRAME_SPEED:
+            intermission_timer = 0  
+        
+            # Pac-Man anim
+            pacman_intermission_frame = (pacman_intermission_frame + 1) % len(pacman_intermission_frames)
+            
+            # Ghost anim
+            if rip_seq:
+                ghost_intermission_index = (ghost_intermission_index + 1) % len(red_ghost_rip)
+            else:
+                ghost_intermission_index = (ghost_intermission_index + 1) % len(red_ghost_sprites["left"])
+        
+        # --- move sprites ---
+        intermission_pac_x -= PAC_MOVE_SPEED * dt
+        g_intermission_draw_x -= GHOST_MOVE_SPEED * dt
+                
+        # -- draw nail ---
+        nail_img = pygame.image.load(f"sprites/pacman-nail.png").convert_alpha()
+        w, h = img.get_size()
+        nail_img = pygame.transform.smoothscale(nail_img, (int(w * 0.1), int(h * 0.4)))
+        screen.blit(nail_img, (screen_width//2, screen_height//2+15))
+
+        # --- draw Pac-Man ---
+        pac_img = pacman_intermission_frames[pacman_intermission_frame]
+        screen.blit(pac_img, (intermission_pac_x, intermission_pac_y))
+            
+        # --- draw Red Ghost + rip ---
+        if not intermission_draw_once:
+            if abs(g_intermission_draw_x - screen_width//2+30) < 2 or rip_seq:
+                rip_seq = True
+                ghost_img = red_ghost_rip[ghost_intermission_index]
+                screen.blit(ghost_img, (g_intermission_draw_x, g_intermission_draw_y))
+                g_intermission_draw_x -= 1
+            else:
+                ghost_img = red_ghost_sprites["left"][ghost_intermission_index]
+                screen.blit(ghost_img, (g_intermission_draw_x, g_intermission_draw_y))
+            if ghost_intermission_index >= 9:
+                intermission_draw_once = True
+        else:
+            ghost_img = red_ghost_rip[9]
+            screen.blit(ghost_img, (g_intermission_draw_x, g_intermission_draw_y))
+
+        # ---- END OF INTERMISSION 2 ----
+        if intermission_pac_x < -50:
+            game_state = "GAMEPLAY"
+            # reset for next time
+            rip_seq = False
+            intermission_draw_once = False
+            INTERMISSION_PHASE = 1
+            intermission_play_song_once = False
+            restart_game()
+
+    # Intermission #3
+    elif game_state == "INTERMISSION3":
+
+        if not intermission_play_song_once:
+            intermission_song.play()
+            intermission_play_song_once = True
+
+        dt = clock.get_time() / 1000.0  # convert ms → seconds
+
+        if INTERMISSION_PHASE == 1:
+
+            # --- update timers ---
+            intermission_timer += dt
+            FRAME_SPEED = 0.04     # seconds per frame
+            PAC_MOVE_SPEED = 175        # pixels per second
+            GHOST_MOVE_SPEED = 181        # pixels per second
+
+            # --- advance animation frames ---
+            if intermission_timer >= FRAME_SPEED:
+                intermission_timer = 0
+
+                # Pac-Man anim
+                pacman_intermission_frame = (pacman_intermission_frame + 1) % len(pacman_intermission_frames)
+
+                # Ghost anim
+                ghost_intermission_index = (ghost_intermission_index + 1) % len(red_ghost_sprites["left"])
+
+            # --- move sprites ---
+            intermission_pac_x -= PAC_MOVE_SPEED * dt
+            g_intermission_draw_x -= GHOST_MOVE_SPEED * dt
+
+            # --- draw Pac-Man ---
+            pac_img = pacman_intermission_frames[pacman_intermission_frame]
+            screen.blit(pac_img, (intermission_pac_x, intermission_pac_y))
+
+            # --- draw Red Ghost ---
+            ghost_img = red_ghost_repair[ghost_intermission_index]
+            screen.blit(ghost_img, (g_intermission_draw_x, g_intermission_draw_y))
+
+        # ---- PHASE SWITCH ----
+        if g_intermission_draw_x < -40:
+            # Flip directions
+            INTERMISSION_PHASE = 2
+
+            # reposition for phase 2
+            intermission_pac_x = -175    # pacman now starts farther on the left
+            intermission_pac_y = screen_height // 2 - 35 # Need to adjust for big pacman
+            g_intermission_draw_x = -35   # ghost comes in from the left
+
+            # reset frames for right-facing movement
+            pacman_intermission_frame = 0
+            ghost_intermission_index = 0
+
+        elif INTERMISSION_PHASE == 2:
+            intermission_timer += dt
+            FRAME_SPEED = 0.06
+            GHOST_MOVE_SPEED = 175     # ghost slower (he’s scared)
+
+            if intermission_timer >= FRAME_SPEED:
+                intermission_timer = 0
+                pacman_intermission_frame = (pacman_intermission_frame + 1) % len(pacman_intermission_frames_big)
+                ghost_intermission_index = (ghost_intermission_index + 1) % len(scared_ghost)
+
+            # move RIGHT
+            intermission_pac_x += PAC_MOVE_SPEED * dt
+            g_intermission_draw_x += GHOST_MOVE_SPEED * dt
+
+            # draw right-facing sprites
+            ghost_img = red_ghost_naked[ghost_intermission_index]
+
+            screen.blit(ghost_img, (g_intermission_draw_x, g_intermission_draw_y))
+
+            # ---- END OF INTERMISSION ----
+            if g_intermission_draw_x > screen_width + 120:
+                game_state = "GAMEPLAY"
+                # reset for next time
+                INTERMISSION_PHASE = 1
+                intermission_play_song_once = False 
+                restart_game()
+
 
     else:
 
@@ -1769,6 +1955,10 @@ while running:
                     completed_lvls += 1
                     if completed_lvls == 2:
                         game_state = "INTERMISSION"
+                    elif completed_lvls == 4:
+                        game_state = "INTERMISSION2"
+                    elif completed_lvls == 6:
+                        game_state = "INTERMISSION3"
                     else:
                         restart_game()
                 elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
@@ -1780,6 +1970,10 @@ while running:
                     completed_lvls += 1
                     if completed_lvls == 2:
                         game_state = "INTERMISSION"
+                    elif completed_lvls == 4:
+                        game_state = "INTERMISSION2"
+                    elif completed_lvls == 6:
+                        game_state = "INTERMISSION3"
                     else:
                         restart_game()
                 
@@ -1841,6 +2035,10 @@ while running:
                     restart_game()
                     if completed_lvls == 2:
                         game_state = "INTERMISSION"
+                    elif completed_lvls == 4:
+                        game_state = "INTERMISSION2"
+                    elif completed_lvls == 6:
+                        game_state = "INTERMISSION3"
                 elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
                     level = generate_level()
                     eaten_pellets = 0
@@ -1851,6 +2049,10 @@ while running:
                     restart_game()
                     if completed_lvls == 2:
                         game_state = "INTERMISSION"
+                    elif completed_lvls == 4:
+                        game_state = "INTERMISSION2"
+                    elif completed_lvls == 6:
+                        game_state = "INTERMISSION3"
 
             current_time = pygame.time.get_ticks()        
 
