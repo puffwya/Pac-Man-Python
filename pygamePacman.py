@@ -237,7 +237,7 @@ def draw_pacman_frame(surface, mouth_angle, direction):
 # Checks if the current tile pacman is on is a pellet or not, sets tile to 2, adds to score, and removes 
 # pellet if so. Does nothing if not.
 def is_current_tile_pellet():
-    global player_x, player_y, player_radius, player_score, waka_flip, eaten_pellets, red_direction, pink_direction, blue_direction, orange_direction, frightened_mode, frightened_timer, p_one_up, pickup_x, pickup_y, pickup_frame, pickup_for_level, item_score_timer, pickup_score
+    global player_x, player_y, player_radius, player_score, waka_flip, eaten_pellets, red_direction, pink_direction, blue_direction, orange_direction, frightened_mode, frightened_timer, p_one_up, pickup_x, pickup_y, pickup_frame, pickup_for_level, item_score_timer, pickup_score, p_one_up
     grid_row, grid_col = get_grid_pos(player_x, player_y)
 
     item_row, item_col = get_grid_pos(pickup_x, pickup_y)
@@ -248,6 +248,7 @@ def is_current_tile_pellet():
             item_pickup.play()
             player_score += 100
             pickup_score = 100
+            p_one_up += 100
             pickup_frame += 1
             pickup_for_level = True
             item_score_timer = 0
@@ -255,6 +256,7 @@ def is_current_tile_pellet():
             item_pickup.play()
             player_score += 300
             pickup_score = 300
+            p_one_up += 300
             pickup_frame += 1
             pickup_for_level = True
             item_score_timer = 0
@@ -262,6 +264,7 @@ def is_current_tile_pellet():
             item_pickup.play()
             player_score += 500
             pickup_score = 500
+            p_one_up += 500
             pickup_frame += 1
             pickup_for_level = True
             item_score_timer = 0
@@ -269,6 +272,7 @@ def is_current_tile_pellet():
             item_pickup.play()
             player_score += 700
             pickup_score = 700
+            p_one_up += 700
             pickup_frame += 1
             pickup_for_level = True
             item_score_timer = 0
@@ -276,6 +280,7 @@ def is_current_tile_pellet():
             item_pickup.play()
             player_score += 1000
             pickup_score = 1000
+            p_one_up += 1000
             pickup_frame += 1
             pickup_for_level = True
             item_score_timer = 0
@@ -283,6 +288,7 @@ def is_current_tile_pellet():
             item_pickup.play()
             player_score += 2000
             pickup_score = 2000
+            p_one_up += 2000
             pickup_frame += 1
             pickup_for_level = True
             item_score_timer = 0
@@ -290,6 +296,7 @@ def is_current_tile_pellet():
             item_pickup.play()
             player_score += 3000
             pickup_score = 3000
+            p_one_up += 3000
             pickup_frame += 1
             pickup_for_level = True
             item_score_timer = 0
@@ -297,6 +304,7 @@ def is_current_tile_pellet():
             item_pickup.play()
             player_score += 5000
             pickup_score = 5000
+            p_one_up += 5000
             pickup_frame += 1
             pickup_for_level = True
             item_score_timer = 0
@@ -350,7 +358,36 @@ for img in pickup_frames:
     scaled = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
     scaled_pickups.append(scaled)
 
-# --- Pacman Death Frame Setup ---
+# --- Start screen pacman right sprites setup ---
+scale_factor = TILE_SIZE // 12 - 0.1
+pacman_start_screen_right_frames = []
+
+for i in range(3):
+    img = pygame.image.load(f"sprites/pacman-start-screen-right-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    pacman_start_screen_right_frames.append(img)
+
+# --- Intermission sprites setup ---
+scale_factor = TILE_SIZE // 12 - 0.1
+pacman_intermission_frames = []
+            
+for i in range(3):
+    img = pygame.image.load(f"sprites/pacman-intermission-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    pacman_intermission_frames.append(img)
+
+scale_factor = TILE_SIZE // 12 - 0.1
+pacman_intermission_frames_big = []
+            
+for i in range(3):
+    img = pygame.image.load(f"sprites/pacman-intermission-big-{i}.png").convert_alpha()
+    w, h = img.get_size()
+    img = pygame.transform.smoothscale(img, (int(w * scale_factor), int(h * scale_factor)))
+    pacman_intermission_frames_big.append(img)
+
+# --- Pacman Death Frames Setup ---
 scale_factor = TILE_SIZE // 12 - 0.1
 pacman_death_frames = []  
     
@@ -833,11 +870,12 @@ def eat_ghost(color):
     p_one_up += ghost_eat_score
 
 def restart_game():
-    global game_start, player_lives, game_start_timer, player_x, player_y, red_ghost_x, red_ghost_y, blue_ghost_x, blue_ghost_y, pink_ghost_x, pink_ghost_y, orange_ghost_x, orange_ghost_y, current_direction,pacman_frame_index, next_direction, pacman_frame_tick, red_direction, red_last_dir, pink_direction, pink_last_dir, blue_direction, blue_last_dir, orange_direction, orange_last_dir, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed, rg_eyes, bg_eyes, pg_eyes, og_eyes, player_speed
+    global game_start, player_lives, game_start_timer, player_x, player_y, red_ghost_x, red_ghost_y, blue_ghost_x, blue_ghost_y, pink_ghost_x, pink_ghost_y, orange_ghost_x, orange_ghost_y, current_direction,pacman_frame_index, next_direction, pacman_frame_tick, red_direction, red_last_dir, pink_direction, pink_last_dir, blue_direction, blue_last_dir, orange_direction, orange_last_dir, r_ghost_speed, b_ghost_speed, p_ghost_speed, o_ghost_speed, rg_eyes, bg_eyes, pg_eyes, og_eyes, player_speed, play_once
     game_start = True
     game_start_timer = 120
     player_lives -= 1
     player_speed = 2
+    play_once = False
 
     # Reset red ghost starting position and speed
     red_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
@@ -958,969 +996,526 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Draw level and pellets
-    # Get each row in level
-    for row in range(len(level)):
-	# Get each col in each row
-        for col in range(len(level[row])):
-	    # Converts the grid coordinates (row, col) into pixel coordinates on the screen (x, y)
-	    # Each cell in the grid is a square of size TILE_SIZE so multiplying by TILE_SIZE places each 
-	    # cell in the correct spot i.e. 1 = 40, 2 = 80...
-            x = col * TILE_SIZE
-            y = row * TILE_SIZE
+    # Starting screen
+    if game_state == "START_SCREEN":
+        dt = clock.get_time() / 1000.0  # convert ms → seconds
+        CHARACTER_NICKNAME = render_stretched_text("CHARACTER   /   NICKNAME", WHITE, ready_font, scale_x=1.3)
+        c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2, screen_height//2-350))
+        screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
-            if level[row][col] == 0:
-                # Draw pellet in center of open cell
-                pellet_radius = TILE_SIZE // 2 - 12
-                pygame.draw.circle(screen, PEACH, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), pellet_radius)
-            elif level[row][col] == 1:
+        start_timer += dt
 
-                # --- Check corners ---
+        # Draw red ghost + info
+        if start_timer >= 1.5:
+            # --- draw Red Ghost ---
+            ghost_img = red_ghost_sprites["right"][0]
+            screen.blit(ghost_img, (185, 140))
+            if start_timer >= 2.0:
+                CHARACTER_NICKNAME = render_stretched_text("- SHADOW", (255, 0, 0), ready_font, scale_x=1.3)
+                c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-110, screen_height//2-313))
+                screen.blit(CHARACTER_NICKNAME, c_n_rect)
+            if start_timer >= 2.5:
+                CHARACTER_NICKNAME = render_stretched_text('"BLINKY"', (255, 0, 0), ready_font, scale_x=1.3)
+                c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+100, screen_height//2-313))
+                screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
-                # Top-left rounded corner
-                if is_walkable(row-1, col) and is_walkable(row, col-1):
-                    pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_top_left_radius=10,
-            border_top_right_radius=0,
-            border_bottom_left_radius=0,
-            border_bottom_right_radius=0)
-                # Top-right rounded corner
-                elif is_walkable(row-1, col) and is_walkable(row, col+1):
-                    pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_top_right_radius=10,
-            border_top_left_radius=0,
-            border_bottom_left_radius=0,
-            border_bottom_right_radius=0)
-                # Bottom-left
-                elif is_walkable(row+1, col) and is_walkable(row, col-1):
-                    pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_bottom_left_radius=10,
-            border_top_left_radius=0,
-            border_top_right_radius=0,
-            border_bottom_right_radius=0)
-                # Bottom-right
-                elif is_walkable(row+1, col) and is_walkable(row, col+1):
-                    pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_bottom_right_radius=10,
-            border_top_left_radius=0,
-            border_top_right_radius=0,
-            border_bottom_left_radius=0)
-                else:
-                    # Draw wall with no rounded edges
-                    pygame.draw.rect(screen, WALL_BLUE, (x, y, TILE_SIZE, TILE_SIZE))
-            elif level[row][col] == 3:
-                # Draw Ghost Door
-                pygame.draw.rect(screen, GRAY, (x, y, TILE_SIZE, TILE_SIZE//4))
-            elif level[row][col] == 4:
-                # Draw pellet in center of open cell
-                power_pellet_radius = TILE_SIZE // 2 - 5
-                if power_pellet_flipper:
-                    color = PEACH
-                else:
-                    color = BLACK
+        # Draw pink ghost + info
+        if start_timer >= 3.5:
+            # --- draw Pink Ghost ---
+            ghost_img = pink_ghost_sprites["right"][0]
+            screen.blit(ghost_img, (185, 200))
+            if start_timer >= 4.0:
+                CHARACTER_NICKNAME = render_stretched_text("- SPEEDY", (255, 184, 255), ready_font, scale_x=1.3)
+                c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-113, screen_height//2-253))
+                screen.blit(CHARACTER_NICKNAME, c_n_rect)
+            if start_timer >= 4.5:
+                CHARACTER_NICKNAME = render_stretched_text('"PINKY"', (255, 184, 255), ready_font, scale_x=1.3)
+                c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+90, screen_height//2-253))
+                screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
-                pygame.draw.circle(screen, color,(x + TILE_SIZE // 2, y + TILE_SIZE // 2),power_pellet_radius)
+        # Draw blue ghost + info
+        if start_timer >= 5.5:
+            # --- draw Blue Ghost ---
+            ghost_img = blue_ghost_sprites["right"][0]
+            screen.blit(ghost_img, (185, 260))
+            if start_timer >= 6.0:   
+                CHARACTER_NICKNAME = render_stretched_text("- BASHFUL", CYAN, ready_font, scale_x=1.3)
+                c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-102, screen_height//2-193))
+                screen.blit(CHARACTER_NICKNAME, c_n_rect)
+            if start_timer >= 6.5:  
+                CHARACTER_NICKNAME = render_stretched_text('"INKY"', CYAN, ready_font, scale_x=1.3)
+                c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+80, screen_height//2-193))
+                screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
-        # Draw Pac-Man lives near bottom of screen
-        for life in range(player_lives):
-                
-            # The circle center you actually draw:
-            circle_center = (30 + TILE_SIZE * life, screen_height - 50)
-                
-            # Draw Pac-Man body
-            pygame.draw.circle(screen, YELLOW, circle_center, player_radius)
-                
-            # Mouth angles (always facing right for lives)
-            a = math.radians(40)
-            startL = math.pi - a
-            endL = math.pi + a
-                
-            # Build mouth wedge polygon
-            num_points = 12
-            points = [circle_center]  # start at center of the circle
-    
-            for i in range(num_points + 1):
-                angle = startL + (endL - startL) * (i / num_points)
-                x = circle_center[0] + player_radius * math.cos(angle)
-                y = circle_center[1] + player_radius * math.sin(angle)
-                points.append((x, y))
-        
-            # Draw the wedge
-            pygame.draw.polygon(screen, BLACK, points)
+        # Draw orange ghost + info
+        if start_timer >= 7.5:
+            # --- draw Orange Ghost ---
+            ghost_img = orange_ghost_sprites["right"][0]
+            screen.blit(ghost_img, (185, 320))
+            if start_timer >= 8.0:
+                CHARACTER_NICKNAME = render_stretched_text("- POKEY", (255, 184, 82), ready_font, scale_x=1.3)
+                c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-121, screen_height//2-133))
+                screen.blit(CHARACTER_NICKNAME, c_n_rect)
+            if start_timer >= 8.5:
+                CHARACTER_NICKNAME = render_stretched_text('"CLYDE"', (255, 184, 82), ready_font, scale_x=1.3)
+                c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+94, screen_height//2-133))
+                screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
-        # Draw Items picked-up in bottom right of screen
-        SPACING = 8
-        item_w = scaled_pickups[0].get_width()
-        start_x = screen_width - item_w - 10
-        y = screen_height - item_w - 10
+        # Draw pellets info
+        if start_timer >= 9.5:
+            # Draw base pellet + info
+            pygame.draw.circle(screen, PEACH, (screen_width//2-100, screen_height//2+100), TILE_SIZE // 2 - 12)
+            CHARACTER_NICKNAME = render_stretched_text("10", WHITE, ready_font, scale_x=1.3)
+            c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-50, screen_height//2+98))
+            screen.blit(CHARACTER_NICKNAME, c_n_rect)
+            CHARACTER_NICKNAME = render_stretched_text("PTS", WHITE, g_eat_font, scale_x=1.6)
+            c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+10, screen_height//2+100))
+            screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
-        for i in range(pickup_frame):
-            x = start_x - i * (item_w + SPACING)
-            screen.blit(scaled_pickups[i], (x, y))
-
-    if game_start:
-        if play_once:
-            pygame.mixer.music.play()
-            
-            play_once = False
-        if chosen_lvl == 1:
-            game_start_timer += 1
-            row, col = get_pixel_pos(13,10)
-
-            if game_start_timer <= 120:
-                # "Player One" text
-                PLAYER_ONE = render_stretched_text("PLAYER  ONE", CYAN, ready_font, scale_x=1.6)
-                player_one_rect = PLAYER_ONE.get_rect(center=(col + TILE_SIZE // 2, row))
-                screen.blit(PLAYER_ONE, player_one_rect)
-    
-                # "READY!" text below
-                READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
-                offset = TILE_SIZE * 5
-                ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
-                screen.blit(READY, ready_rect)  
-            elif game_start_timer >= 120:
-                # "READY!" text below
-                READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
-                offset = TILE_SIZE * 5
-                ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
-                screen.blit(READY, ready_rect)
-                if init_spawn == True:
-                    player_lives -= 1
-                    init_spawn = False
-
-                # Draw Pac-Man
-                draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
-
-                # Draw Ghosts
-                r_ghost_frames = red_ghost_sprites[red_direction]
-                frame = r_ghost_frames[ghost_frame_index] 
-                draw_x = red_ghost_x - frame.get_width()/2 
-                draw_y = red_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-                
-                b_ghost_frames = blue_ghost_sprites[blue_direction]
-                frame = b_ghost_frames[ghost_frame_index]   
-                draw_x = blue_ghost_x - frame.get_width()/2 
-                draw_y = blue_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-                
-                p_ghost_frames = pink_ghost_sprites[pink_direction]
-                frame = p_ghost_frames[ghost_frame_index]   
-                draw_x = pink_ghost_x - frame.get_width()/2 
-                draw_y = pink_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-                
-                o_ghost_frames = orange_ghost_sprites[orange_direction]
-                frame = o_ghost_frames[ghost_frame_index]
-                draw_x = orange_ghost_x - frame.get_width()/2 
-                draw_y = orange_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-
-            # After the duration, exit start state
-            if game_start_timer >= GAME_START_DURATION:
-                game_start = False
-        elif chosen_lvl == 2:
-            game_start_timer += 1
-            row, col = get_pixel_pos(13,10)
-            
-            if game_start_timer <= 120:
-                # "Player One" text   
-                PLAYER_ONE = render_stretched_text("PLAYER  ONE", CYAN, ready_font, scale_x=1.6)
-                player_one_rect = PLAYER_ONE.get_rect(center=(col + TILE_SIZE // 2, row))
-                screen.blit(PLAYER_ONE, player_one_rect)
-        
-                # "READY!" text below  
-                READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
-                offset = TILE_SIZE * 6
-                ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
-                screen.blit(READY, ready_rect)
-            elif game_start_timer >= 120:
-                # "READY!" text below
-                READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
-                offset = TILE_SIZE * 6
-                ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
-                screen.blit(READY, ready_rect)
-                if init_spawn == True:  
-                    player_lives -= 1
-                    init_spawn = False
-
-                # Draw Pac-Man   
-                draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
-
-                # Draw Ghosts
-                r_ghost_frames = red_ghost_sprites[red_direction]
-                frame = r_ghost_frames[ghost_frame_index]
-                draw_x = red_ghost_x - frame.get_width()/2
-                draw_y = red_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-
-                b_ghost_frames = blue_ghost_sprites[blue_direction]
-                frame = b_ghost_frames[ghost_frame_index]
-                draw_x = blue_ghost_x - frame.get_width()/2 
-                draw_y = blue_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-
-                p_ghost_frames = pink_ghost_sprites[pink_direction]
-                frame = p_ghost_frames[ghost_frame_index]
-                draw_x = pink_ghost_x - frame.get_width()/2 
-                draw_y = pink_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-
-                o_ghost_frames = orange_ghost_sprites[orange_direction]
-                frame = o_ghost_frames[ghost_frame_index]
-                draw_x = orange_ghost_x - frame.get_width()/2 
-                draw_y = orange_ghost_y - frame.get_height()/2
-                screen.blit(frame, (draw_x, draw_y))
-
-            # After the duration, exit start state
-            if game_start_timer >= GAME_START_DURATION:
-                game_start = False
-    # If not in "Game Intro" state, run the following
-    else:
-
-        if p_one_up >= 10000:
-            one_up.play()
-            player_lives += 1
-            p_one_up = 0
-
-        # Check if a ghost went off screen, reset to starting position if so
-        check_if_off_screen()
-  
-        if frightened_mode:
-
-            # Spawn item pickup in frightened mode if needed
-            if eaten_pellets >= 100 and eaten_pellets < 150:
-                
-                # Spawn item pickup
-                if not pickup_for_level:
-                    if chosen_lvl == 1:
-                        pickup_x = TILE_SIZE * 13.5
-                        pickup_y = TILE_SIZE * 20.5 - 13
-                    elif chosen_lvl == 2:
-                        pickup_x = TILE_SIZE * 13.5
-                        pickup_y = TILE_SIZE * 19.5 - 13
-                    screen.blit(pickup_frames[pickup_frame], (pickup_x, pickup_y))
-                if item_score_timer <= 1 and pickup_for_level:
-                    PICKUP_SCORE = g_eat_font.render(str(pickup_score), True, CYAN)
-                    pickup_score_rect = PICKUP_SCORE.get_rect(center=(pickup_x+TILE_SIZE//2, pickup_y+TILE_SIZE//2 - 2))
-                    screen.blit(PICKUP_SCORE, pickup_score_rect)
-                    item_score_timer += dt
+            # Draw power pellet + info
+            if power_pellet_flipper_start_screen:
+                power_color = PEACH
             else:
-                pickup_x = 0
-                pickup_y = 0
+                power_color = BLACK
+            pygame.draw.circle(screen, power_color, (screen_width//2-100, screen_height//2+140), TILE_SIZE // 2 - 5)
+            CHARACTER_NICKNAME = render_stretched_text("50", WHITE, ready_font, scale_x=1.3)
+            c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2-50, screen_height//2+138))
+            screen.blit(CHARACTER_NICKNAME, c_n_rect)
+            CHARACTER_NICKNAME = render_stretched_text("PTS", WHITE, g_eat_font, scale_x=1.6)
+            c_n_rect = CHARACTER_NICKNAME.get_rect(center=(screen_width//2+10, screen_height//2+140))
+            screen.blit(CHARACTER_NICKNAME, c_n_rect)
 
-            if not pygame.mixer.music.get_busy():
-                pygame.mixer.music.load("sounds/frightenedMode.mp3")
-                pygame.mixer.music.play()
-            # Check for level completion and reset level if so (case of completing level in frightened state)
-            if eaten_pellets == lvl1MinEaten and chosen_lvl == 1:
-                level = generate_level()
-                eaten_pellets = 0
-                player_lives += 1
-                frightened_mode = False
-                restart_game()
-                pickup_for_level = False
-            elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
-                level = generate_level()
-                eaten_pellets = 0
-                player_lives += 1
-                frightened_mode = False
-                restart_game()
-                pickup_for_level = False
-        else:
-            if not pacman_dying:
-                # Plays ghost siren only once so it does not keep playing
-                if eaten_pellets < 50:
-                    pickup_x = 0
-                    pickup_y = 0
-                    if not pygame.mixer.music.get_busy():
-                        pygame.mixer.music.load("sounds/ghost_siren1.mp3")
-                        pygame.mixer.music.play()
-                elif eaten_pellets >= 50 and eaten_pellets < 100:
-                    pickup_x = 0
-                    pickup_y = 0
-                    if not pygame.mixer.music.get_busy():
-                        pygame.mixer.music.load("sounds/ghost_siren2.mp3")
-                        pygame.mixer.music.play()
-                elif eaten_pellets >= 100 and eaten_pellets < 150:
+        # Demo power pellet
+        if start_timer >= 10.5:
+            if not eaten_start_power_pellet:
+                # Draw power pellet for pacman to eat
+                if power_pellet_flipper_start_screen:
+                    power_color = PEACH
+                else:
+                    power_color = BLACK
+                pygame.draw.circle(screen, power_color, (185, screen_height//2), TILE_SIZE // 2 - 5)
 
-                    # Spawn item pickup
-                    if not pickup_for_level:
-                        if chosen_lvl == 1:
-                            pickup_x = TILE_SIZE * 13.5
-                            pickup_y = TILE_SIZE * 20.5 - 13
-                        elif chosen_lvl == 2:
-                            pickup_x = TILE_SIZE * 13.5
-                            pickup_y = TILE_SIZE * 19.5 - 13
-                        screen.blit(pickup_frames[pickup_frame], (pickup_x, pickup_y))
-                    if item_score_timer <= 1 and pickup_for_level:
-                        PICKUP_SCORE = g_eat_font.render(str(pickup_score), True, CYAN)
-                        pickup_score_rect = PICKUP_SCORE.get_rect(center=(pickup_x+TILE_SIZE//2, pickup_y+TILE_SIZE//2 - 2))
-                        screen.blit(PICKUP_SCORE, pickup_score_rect)
-                        item_score_timer += dt
+        # Begin "blinking" power pellet and pacman ghost sequence
+        if start_timer >= 11.5:
+            current_start_screen_time = pygame.time.get_ticks()
 
-                    if not pygame.mixer.music.get_busy():
-                        pygame.mixer.music.load("sounds/ghost_siren3.mp3")
-                        pygame.mixer.music.play()
-                elif eaten_pellets >= 150 and eaten_pellets < 200:
-                    pickup_x = 0
-                    pickup_y = 0
-                    if not pygame.mixer.music.get_busy():
-                        pygame.mixer.music.load("sounds/ghost_siren4.mp3")
-                        pygame.mixer.music.play()
-                elif eaten_pellets >= 200 and eaten_pellets < 233:
-                    pickup_x = 0
-                    pickup_y = 0
-                    if not pygame.mixer.music.get_busy():
-                        pygame.mixer.music.load("sounds/ghost_siren5.mp3")
-                        pygame.mixer.music.play()
-            # Check for level completion and reset level if so
-            if eaten_pellets == lvl1MinEaten and chosen_lvl == 1:
-                level = generate_level()
-                eaten_pellets = 0
-                frightened_mode = False
-                player_lives += 1
-                restart_game()
-                pickup_for_level = False
-            elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
-                level = generate_level()
-                eaten_pellets = 0
-                frightened_mode = False
-                player_lives += 1
-                restart_game()
-                pickup_for_level = False
+            start_chase_timer += dt
+            FRAME_SPEED = 0.04
+            PAC_MOVE_SPEED = 175
+            GHOST_MOVE_SPEED = 179
 
-        current_time = pygame.time.get_ticks()
+            if (not abs(start_screen_pac_x - 185) < 2) and (not eaten_start_power_pellet):
 
-        
-
-        # Keeps track of time passed and flips power_pellet_flipper to create a "blinking" effect for power pellets
-        # Occurs once every 200 milliseconds
-        if current_time - last_pellet_blink > POWER_PELLET_BLINK_INTERVAL:
-            power_pellet_flipper = not power_pellet_flipper
-            last_pellet_blink = current_time
-
-        # Keeps track of time passed and flips flashing_frightened_flipper to create a "flashing" effect for ghosts
-        # Occurs once every 300 milliseconds
-        if current_time - last_ghost_flash > FRIGHTENED_FLASH_INTERVAL:
-            flashing_frightened_flipper = not flashing_frightened_flipper
-            last_ghost_flash = current_time
-
-        if not pacman_dying:
-
-            # Input
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT]:
-                next_direction = 'left'
-            elif keys[pygame.K_RIGHT]:
-                next_direction = 'right'
-            elif keys[pygame.K_UP]:
-                next_direction = 'up'
-            elif keys[pygame.K_DOWN]:
-                next_direction = 'down'
-
-            # Check for pellet (base or power)
-            is_current_tile_pellet()
-
-            # Movement logic    
-            try_turn()
-            move_pacman()
-            handle_warp()
-
-            # Animate Pac-Man (player)
-            if current_direction is not None:
-                pacman_frame_tick += 1
-                if pacman_frame_tick >= PACMAN_FRAME_DELAY:
-                    pacman_frame_tick = 0
-                    pacman_frame_index = (pacman_frame_index + 1) % len(PACMAN_FRAMES)
-
-        # Draw Pac-Man
-        draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
-
-        # Draw Score
-        score = score_font.render("1UP: " + str(player_score), True, WHITE)
-
-        # Draw Pac-Man lives near bottom of screen
-        for life in range(player_lives):
-            
-            # Pacman center:
-            circle_center = (30 + TILE_SIZE * life, screen_height - 50)  
-                    
-            # Draw Pac-Man body
-            pygame.draw.circle(screen, YELLOW, circle_center, player_radius)
-            
-            # Mouth angles (always facing right for lives)
-            a = math.radians(40)
-            startL = math.pi - a
-            endL = math.pi + a
-            
-            # Build mouth wedge polygon 
-            num_points = 12
-            points = [circle_center]  # start at center of the circle
-                    
-            for i in range(num_points + 1):
-                angle = startL + (endL - startL) * (i / num_points)
-                x = circle_center[0] + player_radius * math.cos(angle)
-                y = circle_center[1] + player_radius * math.sin(angle)
-                points.append((x, y))
+                # --- advance animation frames ---   
+                if start_chase_timer >= FRAME_SPEED:
+                    start_chase_timer = 0
                 
-            # Draw the wedge
-            pygame.draw.polygon(screen, BLACK, points)
+                    # Pac-Man anim
+                    pacman_intermission_frame = (pacman_intermission_frame + 2) % len(pacman_intermission_frames)
+                
+                    # Ghost anim
+                    ghost_intermission_index = (ghost_intermission_index + 1) % len(red_ghost_sprites["left"])
 
-        screen.blit(score, (20,screen_height-120))
+                # --- move sprites ---
+                start_screen_pac_x -= PAC_MOVE_SPEED * dt
+                start_screen_draw_x_red -= GHOST_MOVE_SPEED * dt
+                start_screen_draw_x_pink -= GHOST_MOVE_SPEED * dt
+                start_screen_draw_x_blue -= GHOST_MOVE_SPEED * dt
+                start_screen_draw_x_orange -= GHOST_MOVE_SPEED * dt
+                
+                # --- draw Pac-Man ---
+                pac_img = pacman_intermission_frames[pacman_intermission_frame]
+                screen.blit(pac_img, (start_screen_pac_x, start_screen_pac_y))
+        
+                # --- draw Red Ghost --- 
+                ghost_img = red_ghost_sprites["left"][ghost_intermission_index]
+                screen.blit(ghost_img, (start_screen_draw_x_red, start_screen_draw_y))
 
-        # --- Ghost mode timer ---
+                # --- draw Pink Ghost ---
+                ghost_img = pink_ghost_sprites["left"][ghost_intermission_index]
+                screen.blit(ghost_img, (start_screen_draw_x_pink, start_screen_draw_y))
+
+                # --- draw Blue Ghost ---
+                ghost_img = blue_ghost_sprites["left"][ghost_intermission_index]
+                screen.blit(ghost_img, (start_screen_draw_x_blue, start_screen_draw_y))
+            
+                # --- draw Orange Ghost ---
+                ghost_img = orange_ghost_sprites["left"][ghost_intermission_index]
+                screen.blit(ghost_img, (start_screen_draw_x_orange, start_screen_draw_y))
+
+            else:
+                eaten_start_power_pellet = True
+                PAC_MOVE_SPEED = 190
+                GHOST_MOVE_SPEED = 145
+
+                if not start_eaten_pause:
+
+                    # --- advance animation frames ---
+                    if start_chase_timer >= FRAME_SPEED:
+                        start_chase_timer = 0
+                
+                        # Pac-Man anim
+                        pacman_start_screen_right_frame = (pacman_start_screen_right_frame + 1) % len(pacman_start_screen_right_frames)
+                
+                        # Ghost anim
+                        ghost_intermission_index = (ghost_intermission_index + 1) % len(red_ghost_sprites["right"])
+
+                    # --- move sprites ---   
+                    start_screen_pac_x += PAC_MOVE_SPEED * dt
+                    start_screen_draw_x_red += GHOST_MOVE_SPEED * dt
+                    start_screen_draw_x_pink += GHOST_MOVE_SPEED * dt
+                    start_screen_draw_x_blue += GHOST_MOVE_SPEED * dt
+                    start_screen_draw_x_orange += GHOST_MOVE_SPEED * dt
+                    
+                    # --- draw Pac-Man ---
+                    pac_img = pacman_start_screen_right_frames[pacman_start_screen_right_frame]
+                    screen.blit(pac_img, (start_screen_pac_x, start_screen_pac_y))
+
+                    ghost_img = scared_ghost[ghost_intermission_index]
+
+                    if abs(start_screen_pac_x - start_screen_draw_x_red) < 6:
+                        start_eaten_pause = True
+                        start_eaten_red = True
+                        start_screen_draw_x_red = 0            
+                    if abs(start_screen_pac_x - start_screen_draw_x_pink) < 6:
+                        start_eaten_pause = True
+                        start_eaten_pink = True
+                        start_screen_draw_x_pink = 0
+                    if abs(start_screen_pac_x - start_screen_draw_x_blue) < 6:
+                        start_eaten_pause = True
+                        start_eaten_blue = True
+                        start_screen_draw_x_blue = 0
+                    if abs(start_screen_pac_x - start_screen_draw_x_orange) < 6:
+                        start_eaten_pause = True
+                        start_eaten_orange = True
+                        start_screen_draw_x_orange = 0
+
+                    if not start_eaten_red:
+                        # --- draw Red Ghost ---
+                        screen.blit(ghost_img, (start_screen_draw_x_red, start_screen_draw_y))
+    
+                    if not start_eaten_pink:
+                        # --- draw Pink Ghost ---
+                        screen.blit(ghost_img, (start_screen_draw_x_pink, start_screen_draw_y))
+            
+                    if not start_eaten_blue:
+                        # --- draw Blue Ghost ---
+                        screen.blit(ghost_img, (start_screen_draw_x_blue, start_screen_draw_y))
+
+                    if not start_eaten_orange:
+                        # --- draw Orange Ghost ---
+                        screen.blit(ghost_img, (start_screen_draw_x_orange, start_screen_draw_y))
+
+                # Eaten pause sequence
+                else:
+                    start_screen_ghost_eaten_timer += dt
+                    PAC_MOVE_SPEED = 0
+                    GHOST_MOVE_SPEED = 0
+
+                    if not start_eaten_red:
+                        # --- draw Red Ghost ---
+                        screen.blit(scared_ghost[0], (start_screen_draw_x_red, start_screen_draw_y))
+                        
+                    if not start_eaten_pink:
+                        # --- draw Pink Ghost ---
+                        screen.blit(scared_ghost[0], (start_screen_draw_x_pink, start_screen_draw_y))
+                    
+                    if not start_eaten_blue:
+                        # --- draw Blue Ghost ---
+                        screen.blit(scared_ghost[0], (start_screen_draw_x_blue, start_screen_draw_y))
+
+                    if not start_eaten_orange:
+                        # --- draw Orange Ghost ---
+                        screen.blit(scared_ghost[0], (start_screen_draw_x_orange, start_screen_draw_y))
+
+                    # Eaten score
+                    EATEN_SCORE = g_eat_font.render(str(start_screen_ghost_eat_score), True, CYAN)
+                    eaten_score_rect = EATEN_SCORE.get_rect(center=(start_screen_pac_x+20, start_screen_pac_y+10))
+                    screen.blit(EATEN_SCORE, eaten_score_rect)
+
+                    if start_screen_ghost_eaten_timer >= ghost_eaten_duration:
+                        start_eaten_pause = False
+                        start_screen_ghost_eaten_timer = 0
+                        start_screen_ghost_eat_score *= 2
+
+            # Keeps track of time passed and flips power_pellet_flipper_start_screen to create a "blinking" effect for power pellets
+            # Occurs once every 200 milliseconds
+            if current_start_screen_time - last_pellet_blink_start_screen > POWER_PELLET_BLINK_INTERVAL:
+                power_pellet_flipper_start_screen = not power_pellet_flipper_start_screen
+                last_pellet_blink_start_screen = current_start_screen_time
+
+    # Intermission #1
+    elif game_state == "INTERMISSION":
+
+        if not intermission_play_song_once:
+            intermission_song.play()
+            intermission_play_song_once = True
+
         dt = clock.get_time() / 1000.0  # convert ms → seconds
 
-        if frightened_mode:
-            frightened_timer += dt
+        if INTERMISSION_PHASE == 1:
 
-            check_center_tile()
+            # --- update timers ---
+            intermission_timer += dt
+            FRAME_SPEED = 0.04     # seconds per frame
+            PAC_MOVE_SPEED = 175        # pixels per second
+            GHOST_MOVE_SPEED = 181        # pixels per second
 
-            # Check for ghost collision when in frightened mode
-            if is_ghost_collision(player_x, player_y, red_ghost_x, red_ghost_y) and rg_eyes == False:
-                eat_ghost("red")
-            elif is_ghost_collision(player_x, player_y, blue_ghost_x, blue_ghost_y) and bg_eyes == False:
-                eat_ghost("blue")   
-            elif is_ghost_collision(player_x, player_y, pink_ghost_x, pink_ghost_y) and pg_eyes == False:
-                eat_ghost("pink")
-            elif is_ghost_collision(player_x, player_y, orange_ghost_x, orange_ghost_y) and og_eyes == False:
-                eat_ghost("orange")
+            # --- advance animation frames ---
+            if intermission_timer >= FRAME_SPEED:
+                intermission_timer = 0
 
-            if ghost_eaten:
-                ghost_eaten_timer += dt
-                player_speed = 0
-                r_ghost_speed = 0
-                b_ghost_speed = 0
-                p_ghost_speed = 0
-                o_ghost_speed = 0
+                # Pac-Man anim
+                pacman_intermission_frame = (pacman_intermission_frame + 1) % len(pacman_intermission_frames)
 
-                # Draw black circles covering Pac-Man + ghost
-                pygame.draw.circle(screen, BLACK, (player_x, player_y), player_radius)
+                # Ghost anim
+                ghost_intermission_index = (ghost_intermission_index + 1) % len(red_ghost_sprites["left"])
 
-                EATEN_SCORE = g_eat_font.render(str(ghost_eat_score), True, CYAN)
-                if ghost_eaten_color == "red":
-                    pygame.draw.circle(screen, BLACK, (red_ghost_x, red_ghost_y), player_radius)
-                    # Eaten score
-                    eaten_score_rect = EATEN_SCORE.get_rect(center=(red_ghost_x, red_ghost_y))
-                    screen.blit(EATEN_SCORE, eaten_score_rect)
-                    rg_eyes = True
+            # --- move sprites ---
+            intermission_pac_x -= PAC_MOVE_SPEED * dt
+            g_intermission_draw_x -= GHOST_MOVE_SPEED * dt
 
-                    # Draw Ghosts
-                    frame = scared_ghost[ghost_frame_index]
+            # --- draw Pac-Man ---
+            pac_img = pacman_intermission_frames[pacman_intermission_frame]
+            screen.blit(pac_img, (intermission_pac_x, intermission_pac_y))
 
-                    draw_x = blue_ghost_x - frame.get_width()/2
-                    draw_y = blue_ghost_y - frame.get_height()/2
-                    if bg_eyes:
-                        if blue_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif blue_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif blue_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif blue_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+            # --- draw Red Ghost ---
+            ghost_img = red_ghost_sprites["left"][ghost_intermission_index]
+            screen.blit(ghost_img, (g_intermission_draw_x, g_intermission_draw_y))
+
+        # ---- PHASE SWITCH ----
+        if g_intermission_draw_x < -40:
+            # Flip directions
+            INTERMISSION_PHASE = 2
+
+            # reposition for phase 2
+            intermission_pac_x = -175    # pacman now starts farther on the left
+            intermission_pac_y = screen_height // 2 - 35 # Need to adjust for big pacman
+            g_intermission_draw_x = -35   # ghost comes in from the left
+
+            # reset frames for right-facing movement
+            pacman_intermission_frame = 0
+            ghost_intermission_index = 0
+
+        elif INTERMISSION_PHASE == 2:
+            intermission_timer += dt
+            FRAME_SPEED = 0.06
+            PAC_MOVE_SPEED = 191       # pac-man is *faster* now
+            GHOST_MOVE_SPEED = 175     # ghost slower (he’s scared)
+
+            if intermission_timer >= FRAME_SPEED:
+                intermission_timer = 0
+                pacman_intermission_frame = (pacman_intermission_frame + 1) % len(pacman_intermission_frames_big)
+                ghost_intermission_index = (ghost_intermission_index + 1) % len(scared_ghost)
+
+            # move RIGHT
+            intermission_pac_x += PAC_MOVE_SPEED * dt
+            g_intermission_draw_x += GHOST_MOVE_SPEED * dt
+
+            # draw right-facing sprites
+            pac_img = pacman_intermission_frames_big[pacman_intermission_frame]
+            ghost_img = scared_ghost[ghost_intermission_index]
+
+            screen.blit(pac_img, (intermission_pac_x, intermission_pac_y))
+            screen.blit(ghost_img, (g_intermission_draw_x, g_intermission_draw_y))
+
+            # ---- END OF INTERMISSION ----
+            if intermission_pac_x > screen_width + 80:
+                game_state = "GAMEPLAY"
+                # reset for next time
+                INTERMISSION_PHASE = 1
+                intermission_play_song_once = False 
+                restart_game()
+
+
+    else:
+
+        # Draw level and pellets
+        # Get each row in level
+        for row in range(len(level)):
+            # Get each col in each row
+            for col in range(len(level[row])):
+                # Converts the grid coordinates (row, col) into pixel coordinates on the screen (x, y)
+	        # Each cell in the grid is a square of size TILE_SIZE so multiplying by TILE_SIZE places each 
+	        # cell in the correct spot i.e. 1 = 40, 2 = 80...
+                x = col * TILE_SIZE
+                y = row * TILE_SIZE
+
+                if level[row][col] == 0:
+                    # Draw pellet in center of open cell
+                    pellet_radius = TILE_SIZE // 2 - 12
+                    pygame.draw.circle(screen, PEACH, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), pellet_radius)
+                elif level[row][col] == 1:
+
+                    # --- Check corners ---
+
+                    # Top-left rounded corner
+                    if is_walkable(row-1, col) and is_walkable(row, col-1):
+                        pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_top_left_radius=10,
+                border_top_right_radius=0,
+                border_bottom_left_radius=0,
+                border_bottom_right_radius=0)
+                    # Top-right rounded corner
+                    elif is_walkable(row-1, col) and is_walkable(row, col+1):
+                        pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_top_right_radius=10,
+                border_top_left_radius=0,
+                border_bottom_left_radius=0,
+                border_bottom_right_radius=0)
+                    # Bottom-left
+                    elif is_walkable(row+1, col) and is_walkable(row, col-1):
+                        pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_bottom_left_radius=10,
+                border_top_left_radius=0,
+                border_top_right_radius=0,
+                border_bottom_right_radius=0)
+                    # Bottom-right
+                    elif is_walkable(row+1, col) and is_walkable(row, col+1):
+                        pygame.draw.rect(screen, WALL_BLUE,(x,y,TILE_SIZE,TILE_SIZE),border_bottom_right_radius=10,
+                border_top_left_radius=0,
+                border_top_right_radius=0,
+                border_bottom_left_radius=0)
                     else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = pink_ghost_x - frame.get_width()/2
-                    draw_y = pink_ghost_y - frame.get_height()/2
-                    if pg_eyes:
-                        if pink_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif pink_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif pink_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif pink_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        # Draw wall with no rounded edges
+                        pygame.draw.rect(screen, WALL_BLUE, (x, y, TILE_SIZE, TILE_SIZE))
+                elif level[row][col] == 3:
+                    # Draw Ghost Door
+                    pygame.draw.rect(screen, GRAY, (x, y, TILE_SIZE, TILE_SIZE//4))
+                elif level[row][col] == 4:
+                    # Draw pellet in center of open cell
+                    power_pellet_radius = TILE_SIZE // 2 - 5
+                    if power_pellet_flipper:
+                        color = PEACH
                     else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = orange_ghost_x - frame.get_width()/2 
-                    draw_y = orange_ghost_y - frame.get_height()/2
-                    if og_eyes:
-                        if orange_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif orange_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif orange_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif orange_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
+                        color = BLACK
 
+                    pygame.draw.circle(screen, color,(x + TILE_SIZE // 2, y + TILE_SIZE // 2),power_pellet_radius)
 
-                elif ghost_eaten_color == "blue":
-                    pygame.draw.circle(screen, BLACK, (blue_ghost_x, blue_ghost_y), player_radius)
-                    # Eaten score      
-                    eaten_score_rect = EATEN_SCORE.get_rect(center=(blue_ghost_x, blue_ghost_y))
-                    screen.blit(EATEN_SCORE, eaten_score_rect)
-                    bg_eyes = True
-
-                    # Draw Ghosts
-                    frame = scared_ghost[ghost_frame_index]
+            # Draw Pac-Man lives near bottom of screen
+            for life in range(player_lives):
                 
-                    draw_x = red_ghost_x - frame.get_width()/2
-                    draw_y = red_ghost_y - frame.get_height()/2
-                    if rg_eyes:
-                        if red_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif red_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif red_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif red_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-                    
-                    draw_x = pink_ghost_x - frame.get_width()/2
-                    draw_y = pink_ghost_y - frame.get_height()/2
-                    if pg_eyes:
-                        if pink_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif pink_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif pink_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif pink_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = orange_ghost_x - frame.get_width()/2
-                    draw_y = orange_ghost_y - frame.get_height()/2
-                    if og_eyes:
-                        if orange_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif orange_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif orange_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif orange_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-
-                elif ghost_eaten_color == "pink":
-                    pygame.draw.circle(screen, BLACK, (pink_ghost_x, pink_ghost_y), player_radius)
-                    # Eaten score      
-                    eaten_score_rect = EATEN_SCORE.get_rect(center=(pink_ghost_x, pink_ghost_y))
-                    screen.blit(EATEN_SCORE, eaten_score_rect)
-                    pg_eyes = True
-
-                    # Draw Ghosts
-                    frame = scared_ghost[ghost_frame_index]
+                # The circle center you actually draw:
+                circle_center = (30 + TILE_SIZE * life, screen_height - 50)
                 
-                    draw_x = blue_ghost_x - frame.get_width()/2
-                    draw_y = blue_ghost_y - frame.get_height()/2
-                    if bg_eyes:
-                        if blue_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif blue_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif blue_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif blue_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-                    
-                    draw_x = red_ghost_x - frame.get_width()/2
-                    draw_y = red_ghost_y - frame.get_height()/2
-                    if rg_eyes:
-                        if red_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif red_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif red_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif red_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = orange_ghost_x - frame.get_width()/2
-                    draw_y = orange_ghost_y - frame.get_height()/2
-                    if og_eyes:
-                        if orange_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif orange_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif orange_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif orange_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-
-                elif ghost_eaten_color == "orange":
-                    pygame.draw.circle(screen, BLACK, (orange_ghost_x, orange_ghost_y), player_radius)
-                    # Eaten score      
-                    eaten_score_rect = EATEN_SCORE.get_rect(center=(orange_ghost_x, orange_ghost_y))
-                    screen.blit(EATEN_SCORE, eaten_score_rect)
-                    og_eyes = True
-
-                    # Draw Ghosts
-                    frame = scared_ghost[ghost_frame_index]
+                # Draw Pac-Man body
+                pygame.draw.circle(screen, YELLOW, circle_center, player_radius)
                 
-                    draw_x = blue_ghost_x - frame.get_width()/2
-                    draw_y = blue_ghost_y - frame.get_height()/2
-                    if bg_eyes:
-                        if blue_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif blue_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif blue_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif blue_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-                    
-                    draw_x = pink_ghost_x - frame.get_width()/2
-                    draw_y = pink_ghost_y - frame.get_height()/2
-                    if pg_eyes:
-                        if pink_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif pink_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif pink_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif pink_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = red_ghost_x - frame.get_width()/2
-                    draw_y = red_ghost_y - frame.get_height()/2
-                    if rg_eyes:
-                        if red_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x, draw_y))
-                        elif red_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x, draw_y))
-                        elif red_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x, draw_y))
-                        elif red_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x, draw_y))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-
-                # After pause ends
-                if ghost_eaten_timer >= ghost_eaten_duration:
-                    ghost_eaten = False
-                    player_speed = 2
-                    r_ghost_speed = 1
-                    b_ghost_speed = 1
-                    p_ghost_speed = 1
-                    o_ghost_speed = 1
-                    ghost_eat_score *= 2
-            
-            else:            
-
-                # --- Red Ghost Movement ---
-                if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
-                    # SNAP to center so rounding errors don't build up
-                    red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+                # Mouth angles (always facing right for lives)
+                a = math.radians(40)
+                startL = math.pi - a
+                endL = math.pi + a
                 
-                    target = target_frightened(red_ghost_x, red_ghost_y, rg_eyes)
-                    red_direction = choose_ghost_direction(red_ghost_x, red_ghost_y, red_direction, target)
+                # Build mouth wedge polygon
+                num_points = 12
+                points = [circle_center]  # start at center of the circle
+    
+                for i in range(num_points + 1):
+                    angle = startL + (endL - startL) * (i / num_points)
+                    x = circle_center[0] + player_radius * math.cos(angle)
+                    y = circle_center[1] + player_radius * math.sin(angle)
+                    points.append((x, y))
         
-                # Move ghost by direction
-                if red_direction == "up":
-                    red_ghost_y -= r_ghost_speed
-                elif red_direction == "down":
-                    red_ghost_y += r_ghost_speed
-                elif red_direction == "left":
-                    red_ghost_x -= r_ghost_speed
-                elif red_direction == "right":
-                    red_ghost_x += r_ghost_speed  
-                
-                
-                # After moving, if ghost is now very close to the target tile center, snap to exact center
-                if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
-                    red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+                # Draw the wedge
+                pygame.draw.polygon(screen, BLACK, points)
 
-                # --- Blue Ghost Movement ---
-                if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
-                    # SNAP to center so rounding errors don't build up
-                    blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
-                
-                    target = target_frightened(blue_ghost_x, blue_ghost_y, bg_eyes)
-                    blue_direction = choose_ghost_direction(blue_ghost_x, blue_ghost_y, blue_direction, target)
-                
-                # Move ghost by direction
-                if blue_direction == "up":
-                    blue_ghost_y -= b_ghost_speed
-                elif blue_direction == "down":
-                    blue_ghost_y += b_ghost_speed
-                elif blue_direction == "left":
-                    blue_ghost_x -= b_ghost_speed
-                elif blue_direction == "right":
-                    blue_ghost_x += b_ghost_speed  
-                
-                
-                # After moving, if ghost is now very close to the target tile center, snap to exact center
-                if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
-                    blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+            # Draw Items picked-up in bottom right of screen
+            SPACING = 8
+            item_w = scaled_pickups[0].get_width()
+            start_x = screen_width - item_w - 10
+            y = screen_height - item_w - 10
 
-                # --- Pink Ghost Movement ---
-                if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
-                    # SNAP to center so rounding errors don't build up
-                    pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
-                
-                    target = target_frightened(pink_ghost_x, pink_ghost_y, pg_eyes)
-                    pink_direction = choose_ghost_direction(pink_ghost_x, pink_ghost_y, pink_direction, target)
-                
-                # Move ghost by direction
-                if pink_direction == "up":
-                    pink_ghost_y -= p_ghost_speed
-                elif pink_direction == "down":
-                    pink_ghost_y += p_ghost_speed
-                elif pink_direction == "left":
-                    pink_ghost_x -= p_ghost_speed
-                elif pink_direction == "right":
-                    pink_ghost_x += p_ghost_speed  
-                
-                
-                # After moving, if ghost is now very close to the target tile center, snap to exact center
-                if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
-                    pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+            for i in range(pickup_frame):
+                x = start_x - i * (item_w + SPACING)
+                screen.blit(scaled_pickups[i], (x, y))
 
-                # --- Orange Ghost Movement ---
-                if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
-                    # SNAP to center so rounding errors don't build up
-                    orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
-                
-                    target = target_frightened(orange_ghost_x, orange_ghost_y, og_eyes)
-                    orange_direction = choose_ghost_direction(orange_ghost_x, orange_ghost_y, orange_direction, target)
-                
-                # Move ghost by direction
-                if orange_direction == "up":
-                    orange_ghost_y -= o_ghost_speed
-                elif orange_direction == "down":
-                    orange_ghost_y += o_ghost_speed
-                elif orange_direction == "left":
-                    orange_ghost_x -= o_ghost_speed
-                elif orange_direction == "right":
-                    orange_ghost_x += o_ghost_speed  
-                
-                
-                # After moving, if ghost is now very close to the target tile center, snap to exact center
-                if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
-                    orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)            
+        if game_start:
+            if play_once:
+                pygame.mixer.music.play()
+            
+                play_once = False
+            if chosen_lvl == 1:
+                game_start_timer += 1
+                row, col = get_pixel_pos(13,10)
 
-                if frightened_timer < 4:
-                    # Draws normal frightened mode unless in eyes mode
-                    frame = scared_ghost[ghost_frame_index]
-                    draw_x = red_ghost_x - frame.get_width()/2
+                if game_start_timer <= 120:
+                    # "Player One" text
+                    PLAYER_ONE = render_stretched_text("PLAYER  ONE", CYAN, ready_font, scale_x=1.6)
+                    player_one_rect = PLAYER_ONE.get_rect(center=(col + TILE_SIZE // 2, row))
+                    screen.blit(PLAYER_ONE, player_one_rect)
+    
+                    # "READY!" text below
+                    READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
+                    offset = TILE_SIZE * 5
+                    ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                    screen.blit(READY, ready_rect)  
+                elif game_start_timer >= 120:
+                    # "READY!" text below
+                    READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
+                    offset = TILE_SIZE * 5
+                    ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                    screen.blit(READY, ready_rect)
+                    if init_spawn == True:
+                        player_lives -= 1
+                        init_spawn = False
+
+                    # Draw Pac-Man
+                    draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
+
+                    # Draw Ghosts
+                    r_ghost_frames = red_ghost_sprites[red_direction]
+                    frame = r_ghost_frames[ghost_frame_index] 
+                    draw_x = red_ghost_x - frame.get_width()/2 
                     draw_y = red_ghost_y - frame.get_height()/2
-                    if rg_eyes:
-                        if red_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif red_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif red_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif red_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = blue_ghost_x - frame.get_width()/2
+                    screen.blit(frame, (draw_x, draw_y))
+                
+                    b_ghost_frames = blue_ghost_sprites[blue_direction]
+                    frame = b_ghost_frames[ghost_frame_index]   
+                    draw_x = blue_ghost_x - frame.get_width()/2 
                     draw_y = blue_ghost_y - frame.get_height()/2
-                    if bg_eyes:
-                        if blue_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif blue_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif blue_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif blue_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = pink_ghost_x - frame.get_width()/2
+                    screen.blit(frame, (draw_x, draw_y))
+                
+                    p_ghost_frames = pink_ghost_sprites[pink_direction]
+                    frame = p_ghost_frames[ghost_frame_index]   
+                    draw_x = pink_ghost_x - frame.get_width()/2 
                     draw_y = pink_ghost_y - frame.get_height()/2
-                    if pg_eyes:
-                        if pink_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif pink_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif pink_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif pink_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
+                    screen.blit(frame, (draw_x, draw_y))
+                
+                    o_ghost_frames = orange_ghost_sprites[orange_direction]
+                    frame = o_ghost_frames[ghost_frame_index]
                     draw_x = orange_ghost_x - frame.get_width()/2 
                     draw_y = orange_ghost_y - frame.get_height()/2
-                    if og_eyes:
-                        if orange_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif orange_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif orange_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif orange_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
+                    screen.blit(frame, (draw_x, draw_y))
 
-                elif frightened_timer >= 4 and flashing_frightened_flipper:
-                    # Draws white ghost unless in eyes mode
-                    frame = white_scared_ghost[ghost_frame_index]
-                    draw_x = red_ghost_x - frame.get_width()/2
-                    draw_y = red_ghost_y - frame.get_height()/2
-                    if rg_eyes:
-                        if red_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif red_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif red_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif red_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
+                # After the duration, exit start state
+                if game_start_timer >= GAME_START_DURATION:
+                    game_start = False
+            elif chosen_lvl == 2:
+                game_start_timer += 1
+                row, col = get_pixel_pos(13,10)
             
-                    draw_x = blue_ghost_x - frame.get_width()/2
-                    draw_y = blue_ghost_y - frame.get_height()/2
-                    if bg_eyes:
-                        if blue_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif blue_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif blue_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif blue_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-                
-                    draw_x = pink_ghost_x - frame.get_width()/2
-                    draw_y = pink_ghost_y - frame.get_height()/2
-                    if pg_eyes:
-                        if pink_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif pink_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif pink_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif pink_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = orange_ghost_x - frame.get_width()/2
-                    draw_y = orange_ghost_y - frame.get_height()/2
-                    if og_eyes:
-                        if orange_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif orange_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif orange_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif orange_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-                elif frightened_timer >= 4 and not flashing_frightened_flipper:
-                    # Draws blue ghost unless in eyes mode
-                    frame = scared_ghost[ghost_frame_index]
-                    draw_x = red_ghost_x - frame.get_width()/2
-                    draw_y = red_ghost_y - frame.get_height()/2
-                    if rg_eyes:
-                        if red_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif red_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif red_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif red_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = blue_ghost_x - frame.get_width()/2
-                    draw_y = blue_ghost_y - frame.get_height()/2
-                    if bg_eyes:
-                        if blue_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif blue_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif blue_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif blue_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = pink_ghost_x - frame.get_width()/2
-                    draw_y = pink_ghost_y - frame.get_height()/2
-                    if pg_eyes:
-                        if pink_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif pink_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif pink_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif pink_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
-            
-                    draw_x = orange_ghost_x - frame.get_width()/2
-                    draw_y = orange_ghost_y - frame.get_height()/2
-                    if og_eyes:
-                        if orange_direction == "up":
-                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                        elif orange_direction == "down":
-                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                        elif orange_direction == "left":
-                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                        elif orange_direction == "right":
-                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                    else:
-                        screen.blit(frame, (draw_x, draw_y))
+                if game_start_timer <= 120:
+                    # "Player One" text   
+                    PLAYER_ONE = render_stretched_text("PLAYER  ONE", CYAN, ready_font, scale_x=1.6)
+                    player_one_rect = PLAYER_ONE.get_rect(center=(col + TILE_SIZE // 2, row))
+                    screen.blit(PLAYER_ONE, player_one_rect)
+        
+                    # "READY!" text below  
+                    READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
+                    offset = TILE_SIZE * 6
+                    ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                    screen.blit(READY, ready_rect)
+                elif game_start_timer >= 120:
+                    # "READY!" text below
+                    READY = render_stretched_text("READY!", YELLOW, ready_font, scale_x=1.5)
+                    offset = TILE_SIZE * 6
+                    ready_rect = READY.get_rect(center=(col + TILE_SIZE // 2, row + offset))
+                    screen.blit(READY, ready_rect)
+                    if init_spawn == True:  
+                        player_lives -= 1
+                        init_spawn = False
 
-                if frightened_timer >= FRIGHTENED_DURATION:
-                    frightened_mode = False
-                    frightened_timer = 0.0
-                    # resume normal scatter/chase mode
-                    ghost_mode_timer = 0
-        else:
+                    # Draw Pac-Man   
+                    draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
 
-            
-            # Check for ghost collision when not in frightened mode
-            if is_ghost_collision(player_x, player_y, red_ghost_x, red_ghost_y) and not rg_eyes:
-                pacman_dying = True
-            elif is_ghost_collision(player_x, player_y, blue_ghost_x, blue_ghost_y) and not bg_eyes:
-                pacman_dying = True
-            elif is_ghost_collision(player_x, player_y, pink_ghost_x, pink_ghost_y) and not pg_eyes:
-                pacman_dying = True
-            elif is_ghost_collision(player_x, player_y, orange_ghost_x, orange_ghost_y) and not og_eyes:
-                pacman_dying = True
-
-            if pacman_dying:
-
-                player_speed = 0
-                r_ghost_speed = 0
-                b_ghost_speed = 0
-                p_ghost_speed = 0
-                o_ghost_speed = 0
-
-                # Freeze ghosts + player movement
-
-                # --- Initialize animation state once ---
-                if "death_started" not in globals():
-                    death_started = True
-                    death_timer = 0.0
-                    death_frame = 0
-                    DEATH_ANIM_SPEED = 0.12  # seconds per frame
-
-                # Draw halted positions
-                if death_timer < 1.0:
+                    # Draw Ghosts
                     r_ghost_frames = red_ghost_sprites[red_direction]
                     frame = r_ghost_frames[ghost_frame_index]
                     draw_x = red_ghost_x - frame.get_width()/2
@@ -1945,230 +1540,1022 @@ while running:
                     draw_y = orange_ghost_y - frame.get_height()/2
                     screen.blit(frame, (draw_x, draw_y))
 
-                # ---- Animation window ----
-                elif death_timer >= 1.0 and death_timer < 4.0:
+                # After the duration, exit start state
+                if game_start_timer >= GAME_START_DURATION:
+                    game_start = False
+        # If not in "Game Intro" state, run the following
+        else:
 
-                    if not death_sound_once:
-                        pacman_fail.play()
-                        death_sound_once = True
+            if p_one_up >= 10000:
+                one_up.play()
+                player_lives += 1
+                p_one_up = 0
 
-                    # Draw black circle covering Pac-Man
+            # Check if a ghost went off screen, reset to starting position if so
+            check_if_off_screen()
+  
+            if frightened_mode:
+
+                # Spawn item pickup in frightened mode if needed
+                if eaten_pellets >= 100 and eaten_pellets < 150:
+                
+                    # Spawn item pickup
+                    if not pickup_for_level:
+                        if chosen_lvl == 1:
+                            pickup_x = TILE_SIZE * 13.5
+                            pickup_y = TILE_SIZE * 20.5 - 13
+                        elif chosen_lvl == 2:
+                            pickup_x = TILE_SIZE * 13.5
+                            pickup_y = TILE_SIZE * 19.5 - 13
+                        screen.blit(pickup_frames[pickup_frame], (pickup_x, pickup_y))
+                    if item_score_timer <= 1 and pickup_for_level:
+                        PICKUP_SCORE = g_eat_font.render(str(pickup_score), True, CYAN)
+                        pickup_score_rect = PICKUP_SCORE.get_rect(center=(pickup_x+TILE_SIZE//2, pickup_y+TILE_SIZE//2 - 2))
+                        screen.blit(PICKUP_SCORE, pickup_score_rect)
+                        item_score_timer += dt
+                else:
+                    pickup_x = 0
+                    pickup_y = 0
+
+                if not pygame.mixer.music.get_busy():
+                    pygame.mixer.music.load("sounds/frightenedMode.mp3")
+                    pygame.mixer.music.play()
+
+                # Check for level completion and reset level if so (case of completing level in frightened state)
+                if eaten_pellets == lvl1MinEaten and chosen_lvl == 1:
+                    level = generate_level()
+                    eaten_pellets = 0
+                    player_lives += 1
+                    frightened_mode = False
+                    pickup_for_level = False
+                    completed_lvls += 1
+                    if completed_lvls == 2:
+                        game_state = "INTERMISSION"
+                    else:
+                        restart_game()
+                elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
+                    level = generate_level()
+                    eaten_pellets = 0
+                    player_lives += 1
+                    frightened_mode = False
+                    pickup_for_level = False
+                    completed_lvls += 1
+                    if completed_lvls == 2:
+                        game_state = "INTERMISSION"
+                    else:
+                        restart_game()
+                
+            else:
+                if not pacman_dying:
+                    # Plays ghost siren only once so it does not keep playing
+                    if eaten_pellets < 50:
+                        pickup_x = 0
+                        pickup_y = 0
+                        if not pygame.mixer.music.get_busy():
+                            pygame.mixer.music.load("sounds/ghost_siren1.mp3")
+                            pygame.mixer.music.play()
+                    elif eaten_pellets >= 50 and eaten_pellets < 100:
+                        pickup_x = 0
+                        pickup_y = 0
+                        if not pygame.mixer.music.get_busy():
+                            pygame.mixer.music.load("sounds/ghost_siren2.mp3")
+                            pygame.mixer.music.play()
+                    elif eaten_pellets >= 100 and eaten_pellets < 150:
+
+                        # Spawn item pickup
+                        if not pickup_for_level:
+                            if chosen_lvl == 1:
+                                pickup_x = TILE_SIZE * 13.5
+                                pickup_y = TILE_SIZE * 20.5 - 13
+                            elif chosen_lvl == 2:
+                                pickup_x = TILE_SIZE * 13.5
+                                pickup_y = TILE_SIZE * 19.5 - 13
+                            screen.blit(pickup_frames[pickup_frame], (pickup_x, pickup_y))
+                        if item_score_timer <= 1 and pickup_for_level:
+                            PICKUP_SCORE = g_eat_font.render(str(pickup_score), True, CYAN)
+                            pickup_score_rect = PICKUP_SCORE.get_rect(center=(pickup_x+TILE_SIZE//2, pickup_y+TILE_SIZE//2 - 2))
+                            screen.blit(PICKUP_SCORE, pickup_score_rect)
+                            item_score_timer += dt
+
+                        if not pygame.mixer.music.get_busy():
+                            pygame.mixer.music.load("sounds/ghost_siren3.mp3")
+                            pygame.mixer.music.play()
+                    elif eaten_pellets >= 150 and eaten_pellets < 200:
+                        pickup_x = 0
+                        pickup_y = 0
+                        if not pygame.mixer.music.get_busy():
+                            pygame.mixer.music.load("sounds/ghost_siren4.mp3")
+                            pygame.mixer.music.play()
+                    elif eaten_pellets >= 200 and eaten_pellets < 233:
+                        pickup_x = 0
+                        pickup_y = 0
+                        if not pygame.mixer.music.get_busy():
+                            pygame.mixer.music.load("sounds/ghost_siren5.mp3")
+                            pygame.mixer.music.play()
+                # Check for level completion and reset level if so
+                if eaten_pellets == lvl1MinEaten and chosen_lvl == 1:
+                    level = generate_level()
+                    eaten_pellets = 0
+                    frightened_mode = False
+                    player_lives += 1
+                    pickup_for_level = False
+                    completed_lvls += 1
+                    restart_game()
+                    if completed_lvls == 2:
+                        game_state = "INTERMISSION"
+                elif eaten_pellets == lvl2MinEaten and chosen_lvl == 2:
+                    level = generate_level()
+                    eaten_pellets = 0
+                    frightened_mode = False
+                    player_lives += 1
+                    pickup_for_level = False
+                    completed_lvls += 1
+                    restart_game()
+                    if completed_lvls == 2:
+                        game_state = "INTERMISSION"
+
+            current_time = pygame.time.get_ticks()        
+
+            # Keeps track of time passed and flips power_pellet_flipper to create a "blinking" effect for power pellets
+            # Occurs once every 200 milliseconds
+            if current_time - last_pellet_blink > POWER_PELLET_BLINK_INTERVAL:
+                power_pellet_flipper = not power_pellet_flipper
+                last_pellet_blink = current_time
+
+            # Keeps track of time passed and flips flashing_frightened_flipper to create a "flashing" effect for ghosts
+            # Occurs once every 300 milliseconds
+            if current_time - last_ghost_flash > FRIGHTENED_FLASH_INTERVAL:
+                flashing_frightened_flipper = not flashing_frightened_flipper
+                last_ghost_flash = current_time
+
+            if not pacman_dying:
+
+                # Input
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT]:
+                    next_direction = 'left'
+                elif keys[pygame.K_RIGHT]:
+                    next_direction = 'right'
+                elif keys[pygame.K_UP]:
+                    next_direction = 'up'
+                elif keys[pygame.K_DOWN]:
+                    next_direction = 'down'
+
+                # Check for pellet (base or power)
+                is_current_tile_pellet()
+
+                # Movement logic    
+                try_turn()
+                move_pacman()
+                handle_warp()
+
+                # Animate Pac-Man (player)
+                if current_direction is not None:
+                    pacman_frame_tick += 1
+                    if pacman_frame_tick >= PACMAN_FRAME_DELAY:
+                        pacman_frame_tick = 0
+                        pacman_frame_index = (pacman_frame_index + 1) % len(PACMAN_FRAMES)
+
+            # Draw Pac-Man
+            draw_pacman_frame(screen, PACMAN_FRAMES[pacman_frame_index], current_direction)
+
+            # Draw Score
+            score = score_font.render("1UP: " + str(player_score), True, WHITE)
+
+            # Draw Pac-Man lives near bottom of screen
+            for life in range(player_lives):
+            
+                # Pacman center:
+                circle_center = (30 + TILE_SIZE * life, screen_height - 50)  
+                    
+                # Draw Pac-Man body
+                pygame.draw.circle(screen, YELLOW, circle_center, player_radius)
+            
+                # Mouth angles (always facing right for lives)
+                a = math.radians(40)
+                startL = math.pi - a
+                endL = math.pi + a
+            
+                # Build mouth wedge polygon 
+                num_points = 12
+                points = [circle_center]  # start at center of the circle
+                    
+                for i in range(num_points + 1):
+                    angle = startL + (endL - startL) * (i / num_points)
+                    x = circle_center[0] + player_radius * math.cos(angle)
+                    y = circle_center[1] + player_radius * math.sin(angle)
+                    points.append((x, y))
+                
+                # Draw the wedge
+                pygame.draw.polygon(screen, BLACK, points)
+
+            screen.blit(score, (20,screen_height-120))
+
+            # --- Ghost mode timer ---
+            dt = clock.get_time() / 1000.0  # convert ms → seconds
+
+            if frightened_mode:
+                frightened_timer += dt
+
+                check_center_tile()
+
+                # Check for ghost collision when in frightened mode
+                if is_ghost_collision(player_x, player_y, red_ghost_x, red_ghost_y) and rg_eyes == False:
+                    eat_ghost("red")
+                elif is_ghost_collision(player_x, player_y, blue_ghost_x, blue_ghost_y) and bg_eyes == False:
+                    eat_ghost("blue")   
+                elif is_ghost_collision(player_x, player_y, pink_ghost_x, pink_ghost_y) and pg_eyes == False:
+                    eat_ghost("pink")
+                elif is_ghost_collision(player_x, player_y, orange_ghost_x, orange_ghost_y) and og_eyes == False:
+                    eat_ghost("orange")
+
+                if ghost_eaten:
+                    ghost_eaten_timer += dt
+                    player_speed = 0
+                    r_ghost_speed = 0
+                    b_ghost_speed = 0
+                    p_ghost_speed = 0
+                    o_ghost_speed = 0
+
+                    # Draw black circles covering Pac-Man + ghost
                     pygame.draw.circle(screen, BLACK, (player_x, player_y), player_radius)
 
-                    # ---- Play death animation frames ----
-                    # start animation time AFTER the 1 second freeze
-                    anim_time = death_timer - 1.0
-                    death_frame = int(anim_time / DEATH_ANIM_SPEED)
+                    EATEN_SCORE = g_eat_font.render(str(ghost_eat_score), True, CYAN)
+                    if ghost_eaten_color == "red":
+                        pygame.draw.circle(screen, BLACK, (red_ghost_x, red_ghost_y), player_radius)
+                        # Eaten score
+                        eaten_score_rect = EATEN_SCORE.get_rect(center=(red_ghost_x, red_ghost_y))
+                        screen.blit(EATEN_SCORE, eaten_score_rect)
+                        rg_eyes = True
 
-                    if death_frame < len(pacman_death_frames):
-                        frame = pacman_death_frames[death_frame]
-                        frame_rect = frame.get_rect(center=(player_x - TILE_SIZE//6+5, player_y - TILE_SIZE//6+5))
-                        screen.blit(frame, frame_rect)
-                        pygame.display.flip()
-                death_timer += dt
+                        # Draw Ghosts
+                        frame = scared_ghost[ghost_frame_index]
 
-                if death_timer >= 4.0:
-                    # ---- Animation finished: clean up & restart game ----
-                    del death_started
-                    pacman_dying = False
-                    death_sound_once = False
-                    restart_game()
+                        draw_x = blue_ghost_x - frame.get_width()/2
+                        draw_y = blue_ghost_y - frame.get_height()/2
+                        if bg_eyes:
+                            if blue_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif blue_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif blue_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif blue_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = pink_ghost_x - frame.get_width()/2
+                        draw_y = pink_ghost_y - frame.get_height()/2
+                        if pg_eyes:
+                            if pink_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif pink_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif pink_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif pink_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = orange_ghost_x - frame.get_width()/2 
+                        draw_y = orange_ghost_y - frame.get_height()/2
+                        if og_eyes:
+                            if orange_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif orange_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif orange_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif orange_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+
+
+                    elif ghost_eaten_color == "blue":
+                        pygame.draw.circle(screen, BLACK, (blue_ghost_x, blue_ghost_y), player_radius)
+                        # Eaten score      
+                        eaten_score_rect = EATEN_SCORE.get_rect(center=(blue_ghost_x, blue_ghost_y))
+                        screen.blit(EATEN_SCORE, eaten_score_rect)
+                        bg_eyes = True
+
+                        # Draw Ghosts
+                        frame = scared_ghost[ghost_frame_index]
+                
+                        draw_x = red_ghost_x - frame.get_width()/2
+                        draw_y = red_ghost_y - frame.get_height()/2
+                        if rg_eyes:
+                            if red_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif red_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif red_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif red_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+                    
+                        draw_x = pink_ghost_x - frame.get_width()/2
+                        draw_y = pink_ghost_y - frame.get_height()/2
+                        if pg_eyes:
+                            if pink_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif pink_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif pink_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif pink_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = orange_ghost_x - frame.get_width()/2
+                        draw_y = orange_ghost_y - frame.get_height()/2
+                        if og_eyes:
+                            if orange_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif orange_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif orange_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif orange_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+
+                    elif ghost_eaten_color == "pink":
+                        pygame.draw.circle(screen, BLACK, (pink_ghost_x, pink_ghost_y), player_radius)
+                        # Eaten score      
+                        eaten_score_rect = EATEN_SCORE.get_rect(center=(pink_ghost_x, pink_ghost_y))
+                        screen.blit(EATEN_SCORE, eaten_score_rect)
+                        pg_eyes = True
+
+                        # Draw Ghosts
+                        frame = scared_ghost[ghost_frame_index]
+                
+                        draw_x = blue_ghost_x - frame.get_width()/2
+                        draw_y = blue_ghost_y - frame.get_height()/2
+                        if bg_eyes:
+                            if blue_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif blue_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif blue_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif blue_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+                    
+                        draw_x = red_ghost_x - frame.get_width()/2
+                        draw_y = red_ghost_y - frame.get_height()/2
+                        if rg_eyes:
+                            if red_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif red_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif red_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif red_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = orange_ghost_x - frame.get_width()/2
+                        draw_y = orange_ghost_y - frame.get_height()/2
+                        if og_eyes:
+                            if orange_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif orange_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif orange_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif orange_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+
+                    elif ghost_eaten_color == "orange":
+                        pygame.draw.circle(screen, BLACK, (orange_ghost_x, orange_ghost_y), player_radius)
+                        # Eaten score      
+                        eaten_score_rect = EATEN_SCORE.get_rect(center=(orange_ghost_x, orange_ghost_y))
+                        screen.blit(EATEN_SCORE, eaten_score_rect)
+                        og_eyes = True
+
+                        # Draw Ghosts
+                        frame = scared_ghost[ghost_frame_index]
+                
+                        draw_x = blue_ghost_x - frame.get_width()/2
+                        draw_y = blue_ghost_y - frame.get_height()/2
+                        if bg_eyes:
+                            if blue_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif blue_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif blue_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif blue_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+                    
+                        draw_x = pink_ghost_x - frame.get_width()/2
+                        draw_y = pink_ghost_y - frame.get_height()/2
+                        if pg_eyes:
+                            if pink_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif pink_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif pink_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif pink_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = red_ghost_x - frame.get_width()/2
+                        draw_y = red_ghost_y - frame.get_height()/2
+                        if rg_eyes:
+                            if red_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x, draw_y))
+                            elif red_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x, draw_y))
+                            elif red_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x, draw_y))
+                            elif red_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x, draw_y))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+
+                    # After pause ends
+                    if ghost_eaten_timer >= ghost_eaten_duration:
+                        ghost_eaten = False
+                        player_speed = 2
+                        r_ghost_speed = 1
+                        b_ghost_speed = 1
+                        p_ghost_speed = 1
+                        o_ghost_speed = 1
+                        ghost_eat_score *= 2
+            
+                else:            
+
+                    # --- Red Ghost Movement ---
+                    if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                        # SNAP to center so rounding errors don't build up
+                        red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+                
+                        target = target_frightened(red_ghost_x, red_ghost_y, rg_eyes)
+                        red_direction = choose_ghost_direction(red_ghost_x, red_ghost_y, red_direction, target)
+        
+                    # Move ghost by direction
+                    if red_direction == "up":
+                        red_ghost_y -= r_ghost_speed
+                    elif red_direction == "down":
+                        red_ghost_y += r_ghost_speed
+                    elif red_direction == "left":
+                        red_ghost_x -= r_ghost_speed
+                    elif red_direction == "right":
+                        red_ghost_x += r_ghost_speed  
+                
+                
+                    # After moving, if ghost is now very close to the target tile center, snap to exact center
+                    if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                        red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+
+                    # --- Blue Ghost Movement ---
+                    if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                        # SNAP to center so rounding errors don't build up
+                        blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+                
+                        target = target_frightened(blue_ghost_x, blue_ghost_y, bg_eyes)
+                        blue_direction = choose_ghost_direction(blue_ghost_x, blue_ghost_y, blue_direction, target)
+                
+                    # Move ghost by direction
+                    if blue_direction == "up":
+                        blue_ghost_y -= b_ghost_speed
+                    elif blue_direction == "down":
+                        blue_ghost_y += b_ghost_speed
+                    elif blue_direction == "left":
+                        blue_ghost_x -= b_ghost_speed
+                    elif blue_direction == "right":
+                        blue_ghost_x += b_ghost_speed  
+                
+                
+                    # After moving, if ghost is now very close to the target tile center, snap to exact center
+                    if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                        blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+
+                    # --- Pink Ghost Movement ---
+                    if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                        # SNAP to center so rounding errors don't build up
+                        pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+                
+                        target = target_frightened(pink_ghost_x, pink_ghost_y, pg_eyes)
+                        pink_direction = choose_ghost_direction(pink_ghost_x, pink_ghost_y, pink_direction, target)
+                
+                    # Move ghost by direction
+                    if pink_direction == "up":
+                        pink_ghost_y -= p_ghost_speed
+                    elif pink_direction == "down":
+                        pink_ghost_y += p_ghost_speed
+                    elif pink_direction == "left":
+                        pink_ghost_x -= p_ghost_speed
+                    elif pink_direction == "right":
+                        pink_ghost_x += p_ghost_speed  
+                
+                
+                    # After moving, if ghost is now very close to the target tile center, snap to exact center
+                    if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                        pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+
+                    # --- Orange Ghost Movement ---
+                    if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                        # SNAP to center so rounding errors don't build up
+                        orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
+                
+                        target = target_frightened(orange_ghost_x, orange_ghost_y, og_eyes)
+                        orange_direction = choose_ghost_direction(orange_ghost_x, orange_ghost_y, orange_direction, target)
+                
+                    # Move ghost by direction
+                    if orange_direction == "up":
+                        orange_ghost_y -= o_ghost_speed
+                    elif orange_direction == "down":
+                        orange_ghost_y += o_ghost_speed
+                    elif orange_direction == "left":
+                        orange_ghost_x -= o_ghost_speed
+                    elif orange_direction == "right":
+                        orange_ghost_x += o_ghost_speed  
+                
+                
+                    # After moving, if ghost is now very close to the target tile center, snap to exact center
+                    if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                        orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)            
+
+                    if frightened_timer < 4:
+                        # Draws normal frightened mode unless in eyes mode
+                        frame = scared_ghost[ghost_frame_index]
+                        draw_x = red_ghost_x - frame.get_width()/2
+                        draw_y = red_ghost_y - frame.get_height()/2
+                        if rg_eyes:
+                            if red_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif red_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif red_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif red_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = blue_ghost_x - frame.get_width()/2
+                        draw_y = blue_ghost_y - frame.get_height()/2
+                        if bg_eyes:
+                            if blue_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif blue_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif blue_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif blue_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = pink_ghost_x - frame.get_width()/2
+                        draw_y = pink_ghost_y - frame.get_height()/2
+                        if pg_eyes:
+                            if pink_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif pink_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif pink_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif pink_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = orange_ghost_x - frame.get_width()/2 
+                        draw_y = orange_ghost_y - frame.get_height()/2
+                        if og_eyes:
+                            if orange_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif orange_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif orange_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif orange_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+
+                    elif frightened_timer >= 4 and flashing_frightened_flipper:
+                        # Draws white ghost unless in eyes mode
+                        frame = white_scared_ghost[ghost_frame_index]
+                        draw_x = red_ghost_x - frame.get_width()/2
+                        draw_y = red_ghost_y - frame.get_height()/2
+                        if rg_eyes:
+                            if red_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif red_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif red_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif red_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = blue_ghost_x - frame.get_width()/2
+                        draw_y = blue_ghost_y - frame.get_height()/2
+                        if bg_eyes:
+                            if blue_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif blue_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif blue_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif blue_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+                
+                        draw_x = pink_ghost_x - frame.get_width()/2
+                        draw_y = pink_ghost_y - frame.get_height()/2
+                        if pg_eyes:
+                            if pink_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif pink_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif pink_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif pink_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = orange_ghost_x - frame.get_width()/2
+                        draw_y = orange_ghost_y - frame.get_height()/2
+                        if og_eyes:
+                            if orange_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif orange_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif orange_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif orange_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+                    elif frightened_timer >= 4 and not flashing_frightened_flipper:
+                        # Draws blue ghost unless in eyes mode
+                        frame = scared_ghost[ghost_frame_index]
+                        draw_x = red_ghost_x - frame.get_width()/2
+                        draw_y = red_ghost_y - frame.get_height()/2
+                        if rg_eyes:
+                            if red_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif red_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif red_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif red_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = blue_ghost_x - frame.get_width()/2
+                        draw_y = blue_ghost_y - frame.get_height()/2
+                        if bg_eyes:
+                            if blue_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif blue_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif blue_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif blue_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = pink_ghost_x - frame.get_width()/2
+                        draw_y = pink_ghost_y - frame.get_height()/2
+                        if pg_eyes:
+                            if pink_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif pink_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif pink_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif pink_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+            
+                        draw_x = orange_ghost_x - frame.get_width()/2
+                        draw_y = orange_ghost_y - frame.get_height()/2
+                        if og_eyes:
+                            if orange_direction == "up":
+                                screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                            elif orange_direction == "down":
+                                screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                            elif orange_direction == "left":
+                                screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                            elif orange_direction == "right":
+                                screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                        else:
+                            screen.blit(frame, (draw_x, draw_y))
+
+                    if frightened_timer >= FRIGHTENED_DURATION:
+                        frightened_mode = False
+                        frightened_timer = 0.0
+                        # resume normal scatter/chase mode
+                        ghost_mode_timer = 0
 
             else:
 
-                ghost_mode_timer += dt
             
-                # Reset ghost_eat_score back to 200
-                ghost_eat_score = 200
+                # Check for ghost collision when not in frightened mode
+                if is_ghost_collision(player_x, player_y, red_ghost_x, red_ghost_y) and not rg_eyes:
+                    pacman_dying = True
+                elif is_ghost_collision(player_x, player_y, blue_ghost_x, blue_ghost_y) and not bg_eyes:
+                    pacman_dying = True
+                elif is_ghost_collision(player_x, player_y, pink_ghost_x, pink_ghost_y) and not pg_eyes:
+                    pacman_dying = True
+                elif is_ghost_collision(player_x, player_y, orange_ghost_x, orange_ghost_y) and not og_eyes:
+                    pacman_dying = True
 
-                # Check if a ghost is at the center tile
-                check_center_tile()
+                if pacman_dying:
 
-                # Get current mode + duration
-                ghost_mode, duration = MODE_CYCLE[ghost_mode_index]
+                    player_speed = 0
+                    r_ghost_speed = 0
+                    b_ghost_speed = 0
+                    p_ghost_speed = 0
+                    o_ghost_speed = 0
 
-                # Check for mode switch
-                if ghost_mode_timer >= duration:
-                    ghost_mode_timer = 0
+                    # Freeze ghosts + player movement
 
-                    # Advance to next mode
-                    ghost_mode_index += 1
+                    # --- Initialize animation state once ---
+                    if "death_started" not in globals():
+                        death_started = True
+                        death_timer = 0.0
+                        death_frame = 0
+                        DEATH_ANIM_SPEED = 0.12  # seconds per frame
 
-                    # Loop back to 0 if we reached the end
-                    if ghost_mode_index >= len(MODE_CYCLE):
-                        ghost_mode_index = 0
+                    # Draw halted positions
+                    if death_timer < 1.0:
+                        r_ghost_frames = red_ghost_sprites[red_direction]
+                        frame = r_ghost_frames[ghost_frame_index]
+                        draw_x = red_ghost_x - frame.get_width()/2
+                        draw_y = red_ghost_y - frame.get_height()/2
+                        screen.blit(frame, (draw_x, draw_y))
+
+                        b_ghost_frames = blue_ghost_sprites[blue_direction]
+                        frame = b_ghost_frames[ghost_frame_index]
+                        draw_x = blue_ghost_x - frame.get_width()/2 
+                        draw_y = blue_ghost_y - frame.get_height()/2
+                        screen.blit(frame, (draw_x, draw_y))
+
+                        p_ghost_frames = pink_ghost_sprites[pink_direction]
+                        frame = p_ghost_frames[ghost_frame_index]
+                        draw_x = pink_ghost_x - frame.get_width()/2 
+                        draw_y = pink_ghost_y - frame.get_height()/2
+                        screen.blit(frame, (draw_x, draw_y))
+
+                        o_ghost_frames = orange_ghost_sprites[orange_direction]
+                        frame = o_ghost_frames[ghost_frame_index]
+                        draw_x = orange_ghost_x - frame.get_width()/2 
+                        draw_y = orange_ghost_y - frame.get_height()/2
+                        screen.blit(frame, (draw_x, draw_y))
+
+                    # ---- Animation window ----
+                    elif death_timer >= 1.0 and death_timer < 4.0:
+
+                        if not death_sound_once:
+                            pacman_fail.play()
+                            death_sound_once = True
+
+                        # Draw black circle covering Pac-Man
+                        pygame.draw.circle(screen, BLACK, (player_x, player_y), player_radius)
+
+                        # ---- Play death animation frames ----
+                        # start animation time AFTER the 1 second freeze
+                        anim_time = death_timer - 1.0
+                        death_frame = int(anim_time / DEATH_ANIM_SPEED)
+
+                        if death_frame < len(pacman_death_frames):
+                            frame = pacman_death_frames[death_frame]
+                            frame_rect = frame.get_rect(center=(player_x - TILE_SIZE//6+5, player_y - TILE_SIZE//6+5))
+                            screen.blit(frame, frame_rect)
+                            pygame.display.flip()
+                    death_timer += dt
+
+                    if death_timer >= 4.0:
+                        # ---- Animation finished: clean up & restart game ----
+                        del death_started
+                        pacman_dying = False
+                        death_sound_once = False
+                        restart_game()
+
+                else:
+
+                    ghost_mode_timer += dt
+            
+                    # Reset ghost_eat_score back to 200
+                    ghost_eat_score = 200
+
+                    # Check if a ghost is at the center tile
+                    check_center_tile()
+
+                    # Get current mode + duration
+                    ghost_mode, duration = MODE_CYCLE[ghost_mode_index]
+
+                    # Check for mode switch
+                    if ghost_mode_timer >= duration:
+                        ghost_mode_timer = 0
+
+                        # Advance to next mode
+                        ghost_mode_index += 1
+
+                        # Loop back to 0 if we reached the end
+                        if ghost_mode_index >= len(MODE_CYCLE):
+                            ghost_mode_index = 0
                 
-                    # Update active mode
-                    ghost_mode, _ = MODE_CYCLE[ghost_mode_index]
+                        # Update active mode
+                        ghost_mode, _ = MODE_CYCLE[ghost_mode_index]
 
 
-                # --- Red Ghost Movement ---
-                if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
-                    # SNAP to center so rounding errors don't build up
-                    red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+                    # --- Red Ghost Movement ---
+                    if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                        # SNAP to center so rounding errors don't build up
+                        red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
 
-                    target = get_red_target(rg_eyes)
-                    red_direction = choose_ghost_direction(red_ghost_x, red_ghost_y, red_direction, target)
+                        target = get_red_target(rg_eyes)
+                        red_direction = choose_ghost_direction(red_ghost_x, red_ghost_y, red_direction, target)
 
-                # Move ghost by direction
-                if red_direction == "up":
-                    red_ghost_y -= r_ghost_speed
-                elif red_direction == "down":
-                    red_ghost_y += r_ghost_speed
-                elif red_direction == "left":
-                    red_ghost_x -= r_ghost_speed
-                elif red_direction == "right":
-                    red_ghost_x += r_ghost_speed
+                    # Move ghost by direction
+                    if red_direction == "up":
+                        red_ghost_y -= r_ghost_speed
+                    elif red_direction == "down":
+                        red_ghost_y += r_ghost_speed
+                    elif red_direction == "left":
+                        red_ghost_x -= r_ghost_speed
+                    elif red_direction == "right":
+                        red_ghost_x += r_ghost_speed
 
 
-                # After moving, if ghost is now very close to the target tile center, snap to exact center
-                if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
-                    red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
+                    # After moving, if ghost is now very close to the target tile center, snap to exact center
+                    if is_ghost_centered(red_ghost_x) and is_ghost_centered(red_ghost_y):
+                        red_ghost_x, red_ghost_y = snap_ghost_to_center(red_ghost_x, red_ghost_y)
 
-                # --- Pink Ghost Movement ---
-                if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
-                    # SNAP to center so rounding errors don't build up
-                    pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+                    # --- Pink Ghost Movement ---
+                    if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                        # SNAP to center so rounding errors don't build up
+                        pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
             
-                    target = get_pink_target(pg_eyes)
-                    pink_direction = choose_ghost_direction(pink_ghost_x, pink_ghost_y, pink_direction, target)
+                        target = get_pink_target(pg_eyes)
+                        pink_direction = choose_ghost_direction(pink_ghost_x, pink_ghost_y, pink_direction, target)
         
-                # Move ghost by direction 
-                if pink_direction == "up":
-                    pink_ghost_y -= p_ghost_speed
-                elif pink_direction == "down":
-                    pink_ghost_y += p_ghost_speed
-                elif pink_direction == "left":
-                    pink_ghost_x -= p_ghost_speed
-                elif pink_direction == "right":
-                    pink_ghost_x += p_ghost_speed  
+                    # Move ghost by direction 
+                    if pink_direction == "up":
+                        pink_ghost_y -= p_ghost_speed
+                    elif pink_direction == "down":
+                        pink_ghost_y += p_ghost_speed
+                    elif pink_direction == "left":
+                        pink_ghost_x -= p_ghost_speed
+                    elif pink_direction == "right":
+                        pink_ghost_x += p_ghost_speed  
             
     
-                # After moving, if ghost is now very close to the target tile center, snap to exact center
-                if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
-                    pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
+                    # After moving, if ghost is now very close to the target tile center, snap to exact center
+                    if is_ghost_centered(pink_ghost_x) and is_ghost_centered(pink_ghost_y):
+                        pink_ghost_x, pink_ghost_y = snap_ghost_to_center(pink_ghost_x, pink_ghost_y)
 
-                # --- Blue Ghost Movement ---
-                if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
-                    # SNAP to center so rounding errors don't build up
-                    blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
+                    # --- Blue Ghost Movement ---
+                    if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                        # SNAP to center so rounding errors don't build up
+                        blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
         
-                    target = get_blue_target(red_ghost_x, red_ghost_y, bg_eyes)
-                    blue_direction = choose_ghost_direction(blue_ghost_x, blue_ghost_y, blue_direction, target)
+                        target = get_blue_target(red_ghost_x, red_ghost_y, bg_eyes)
+                        blue_direction = choose_ghost_direction(blue_ghost_x, blue_ghost_y, blue_direction, target)
         
-                # Move ghost by direction
-                if blue_direction == "up":
-                    blue_ghost_y -= b_ghost_speed
-                elif blue_direction == "down":
-                    blue_ghost_y += b_ghost_speed
-                elif blue_direction == "left":
-                    blue_ghost_x -= b_ghost_speed
-                elif blue_direction == "right":
-                    blue_ghost_x += b_ghost_speed
-        
-        
-                # After moving, if ghost is now very close to the target tile center, snap to exact center
-                if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
-                    blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
-
-
-                # --- Orange Ghost Movement ---
-                if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
-                    # SNAP to center so rounding errors don't build up
-                    orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
-        
-                    target = get_orange_target(orange_ghost_x, orange_ghost_y, og_eyes)
-                    orange_direction = choose_ghost_direction(orange_ghost_x, orange_ghost_y, orange_direction, target)
-        
-                # Move ghost by direction
-                if orange_direction == "up":
-                    orange_ghost_y -= o_ghost_speed
-                elif orange_direction == "down":
-                    orange_ghost_y += o_ghost_speed
-                elif orange_direction == "left":
-                    orange_ghost_x -= o_ghost_speed
-                elif orange_direction == "right":
-                    orange_ghost_x += o_ghost_speed
-            
-            
-                # After moving, if ghost is now very close to the target tile center, snap to exact center
-                if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
-                    orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
-
-                # Draw normally unless in eyes mode
-                # --- Draw red ghost ---
-                r_ghost_frames = red_ghost_sprites[red_direction]
-                frame = r_ghost_frames[ghost_frame_index]
-                draw_x = red_ghost_x - frame.get_width()/2
-                draw_y = red_ghost_y - frame.get_height()/2
-                if rg_eyes:
-                    if red_direction == "up":
-                        screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                    elif red_direction == "down":
-                        screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                    elif red_direction == "left":
-                        screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                    elif red_direction == "right":
-                        screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                else:
-                    screen.blit(frame, (draw_x, draw_y))
-                
-                # --- Draw blue ghost ---
-                b_ghost_frames = blue_ghost_sprites[blue_direction]   
-                frame = b_ghost_frames[ghost_frame_index]
-                draw_x = blue_ghost_x - frame.get_width()/2
-                draw_y = blue_ghost_y - frame.get_height()/2
-                if bg_eyes:
+                    # Move ghost by direction
                     if blue_direction == "up":
-                        screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                        blue_ghost_y -= b_ghost_speed
                     elif blue_direction == "down":
-                        screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                        blue_ghost_y += b_ghost_speed
                     elif blue_direction == "left":
-                        screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                        blue_ghost_x -= b_ghost_speed
                     elif blue_direction == "right":
-                        screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                else:
-                    screen.blit(frame, (draw_x, draw_y))
-                
-                # --- Draw pink ghost ---
-                p_ghost_frames = pink_ghost_sprites[pink_direction]
-                frame = p_ghost_frames[ghost_frame_index]
-                draw_x = pink_ghost_x - frame.get_width()/2
-                draw_y = pink_ghost_y - frame.get_height()/2
-                if pg_eyes:
-                    if pink_direction == "up":
-                        screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                    elif pink_direction == "down":
-                        screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                    elif pink_direction == "left":
-                        screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                    elif pink_direction == "right":
-                        screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                else:
-                    screen.blit(frame, (draw_x, draw_y))
-                
-                # --- Draw Orange ghost ---
-                o_ghost_frames = orange_ghost_sprites[orange_direction]
-                frame = o_ghost_frames[ghost_frame_index]
-                draw_x = orange_ghost_x - frame.get_width()/2
-                draw_y = orange_ghost_y - frame.get_height()/2
-                if og_eyes:
-                    if orange_direction == "up":
-                        screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
-                    elif orange_direction == "down":
-                        screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
-                    elif orange_direction == "left":
-                        screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
-                    elif orange_direction == "right":
-                        screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
-                else:
-                    screen.blit(frame, (draw_x, draw_y))
+                        blue_ghost_x += b_ghost_speed
+        
+        
+                    # After moving, if ghost is now very close to the target tile center, snap to exact center
+                    if is_ghost_centered(blue_ghost_x) and is_ghost_centered(blue_ghost_y):
+                        blue_ghost_x, blue_ghost_y = snap_ghost_to_center(blue_ghost_x, blue_ghost_y)
 
-        # --- Update ghost animations ---
-        ghost_frame_tick += 1
-        if ghost_frame_tick >= GHOST_FRAME_DELAY:
-            ghost_frame_tick = 0
-            ghost_frame_index = (ghost_frame_index + 1) % 2
+
+                    # --- Orange Ghost Movement ---
+                    if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                        # SNAP to center so rounding errors don't build up
+                        orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
+        
+                        target = get_orange_target(orange_ghost_x, orange_ghost_y, og_eyes)
+                        orange_direction = choose_ghost_direction(orange_ghost_x, orange_ghost_y, orange_direction, target)
+        
+                    # Move ghost by direction
+                    if orange_direction == "up":
+                        orange_ghost_y -= o_ghost_speed
+                    elif orange_direction == "down":
+                        orange_ghost_y += o_ghost_speed
+                    elif orange_direction == "left":
+                        orange_ghost_x -= o_ghost_speed
+                    elif orange_direction == "right":
+                        orange_ghost_x += o_ghost_speed
+            
+            
+                    # After moving, if ghost is now very close to the target tile center, snap to exact center
+                    if is_ghost_centered(orange_ghost_x) and is_ghost_centered(orange_ghost_y):
+                        orange_ghost_x, orange_ghost_y = snap_ghost_to_center(orange_ghost_x, orange_ghost_y)
+
+                    # Draw normally unless in eyes mode
+                    # --- Draw red ghost ---
+                    r_ghost_frames = red_ghost_sprites[red_direction]
+                    frame = r_ghost_frames[ghost_frame_index]
+                    draw_x = red_ghost_x - frame.get_width()/2
+                    draw_y = red_ghost_y - frame.get_height()/2
+                    if rg_eyes:
+                        if red_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                        elif red_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                        elif red_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                        elif red_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+                
+                    # --- Draw blue ghost ---
+                    b_ghost_frames = blue_ghost_sprites[blue_direction]   
+                    frame = b_ghost_frames[ghost_frame_index]
+                    draw_x = blue_ghost_x - frame.get_width()/2
+                    draw_y = blue_ghost_y - frame.get_height()/2
+                    if bg_eyes:
+                        if blue_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                        elif blue_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                        elif blue_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                        elif blue_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+                
+                    # --- Draw pink ghost ---
+                    p_ghost_frames = pink_ghost_sprites[pink_direction]
+                    frame = p_ghost_frames[ghost_frame_index]
+                    draw_x = pink_ghost_x - frame.get_width()/2
+                    draw_y = pink_ghost_y - frame.get_height()/2
+                    if pg_eyes:
+                        if pink_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                        elif pink_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                        elif pink_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                        elif pink_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+                
+                    # --- Draw Orange ghost ---
+                    o_ghost_frames = orange_ghost_sprites[orange_direction]
+                    frame = o_ghost_frames[ghost_frame_index]
+                    draw_x = orange_ghost_x - frame.get_width()/2
+                    draw_y = orange_ghost_y - frame.get_height()/2
+                    if og_eyes:
+                        if orange_direction == "up":
+                            screen.blit(ghost_eyes_up, (draw_x+5, draw_y+5))
+                        elif orange_direction == "down":
+                            screen.blit(ghost_eyes_down, (draw_x+5, draw_y+5))
+                        elif orange_direction == "left":
+                            screen.blit(ghost_eyes_left, (draw_x+5, draw_y+5))
+                        elif orange_direction == "right":
+                            screen.blit(ghost_eyes_right, (draw_x+5, draw_y+5))
+                    else:
+                        screen.blit(frame, (draw_x, draw_y))
+
+            # --- Update ghost animations ---
+            ghost_frame_tick += 1
+            if ghost_frame_tick >= GHOST_FRAME_DELAY:
+                ghost_frame_tick = 0
+                ghost_frame_index = (ghost_frame_index + 1) % 2
 
     pygame.display.flip()
     clock.tick(60)

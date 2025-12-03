@@ -60,11 +60,15 @@ eating_ghost = pygame.mixer.Sound("sounds/PacmanEatingGhost.mp3")
 pacman_fail = pygame.mixer.Sound("sounds/PacmanFail.mp3")
 one_up = pygame.mixer.Sound("sounds/PacmanOneUp.mp3")
 item_pickup = pygame.mixer.Sound("sounds/PacmanItemPickup.mp3")
+intermission_song = pygame.mixer.Sound("sounds/PacmanIntermission.mp3")
 
 # Power Pellet "Blinking" Variables
 power_pellet_flipper = True
 POWER_PELLET_BLINK_INTERVAL = 200 # milliseconds
 last_pellet_blink = pygame.time.get_ticks()
+
+# Same for start screen
+last_pellet_blink_start_screen = pygame.time.get_ticks()
 
 # Player setup so that Pac-Man fits nicely in the path
 # TILE_SIZE // 2 - 1 makes the player slightly smaller than the tile but still nicely fit 
@@ -134,3 +138,46 @@ pickup_y = 0
 pickup_for_level = False
 item_score_timer = 0
 pickup_score = 0
+
+# Intermission sequence vars
+intermission_pac_x = screen_width + 15
+intermission_pac_y = screen_height // 2
+
+g_intermission_draw_x = screen_width + 75
+g_intermission_draw_y = screen_height // 2
+
+pacman_intermission_frame = 0
+
+ghost_intermission_index = 0
+
+intermission_timer = 0
+
+INTERMISSION_PHASE = 1
+
+intermission_play_song_once = False
+
+completed_lvls = 0
+
+# Starting Screen vars
+start_timer = 0.0
+power_pellet_flipper_start_screen = True
+start_chase_timer = 0.0
+start_screen_pac_x = screen_width + 30
+start_screen_pac_y = screen_height//2-10
+start_screen_draw_x_red = screen_width + 75
+start_screen_draw_x_pink = screen_width + 110
+start_screen_draw_x_blue = screen_width + 145
+start_screen_draw_x_orange = screen_width + 180
+start_screen_draw_y = screen_height//2-10
+eaten_start_power_pellet = False
+pacman_start_screen_right_frame = 0
+start_eaten_pause = False
+start_eaten_red = False
+start_eaten_pink = False
+start_eaten_blue = False
+start_eaten_orange = False
+start_screen_ghost_eat_score = 200
+start_screen_ghost_eaten_timer = 0
+
+# Game State var
+game_state = "START_SCREEN"
