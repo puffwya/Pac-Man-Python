@@ -969,16 +969,16 @@ def check_center_tile():
 def check_if_off_screen():
     global red_ghost_x, red_ghost_y, pink_ghost_x, pink_ghost_y, blue_ghost_x, blue_ghost_y, orange_ghost_x, orange_ghost_y, screen_width, screen_height
 
-    if red_ghost_x < 0 or red_ghost_x > screen_width or red_ghost_y < 0 or red_ghost_y > screen_height:
+    if red_ghost_x < -TILE_SIZE or red_ghost_x > screen_width + TILE_SIZE or red_ghost_y < -TILE_SIZE or red_ghost_y > screen_height + TILE_SIZE:
         red_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
-        red_ghost_y = TILE_SIZE * 10 + TILE_SIZE/2
-    if pink_ghost_x < 0 or pink_ghost_x > screen_width or pink_ghost_y < 0 or pink_ghost_y > screen_height:
+        red_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
+    if pink_ghost_x < -TILE_SIZE or pink_ghost_x > screen_width + TILE_SIZE or pink_ghost_y < -TILE_SIZE or pink_ghost_y > screen_height + TILE_SIZE:
         pink_ghost_x = TILE_SIZE * 13 + TILE_SIZE/2
         pink_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
-    if blue_ghost_x < 0 or blue_ghost_x > screen_width or blue_ghost_y < 0 or blue_ghost_y > screen_height:
+    if blue_ghost_x < -TILE_SIZE or blue_ghost_x > screen_width + TILE_SIZE or blue_ghost_y < -TILE_SIZE or blue_ghost_y > screen_height + TILE_SIZE:
         blue_ghost_x = TILE_SIZE * 12 + TILE_SIZE/2
         blue_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
-    if orange_ghost_x < 0 or orange_ghost_x > screen_width or orange_ghost_y < 0 or orange_ghost_y > screen_height:
+    if orange_ghost_x < -TILE_SIZE or orange_ghost_x > screen_width + TILE_SIZE or orange_ghost_y < -TILE_SIZE or orange_ghost_y > screen_height + TILE_SIZE:
         orange_ghost_x = TILE_SIZE * 14 + TILE_SIZE/2
         orange_ghost_y = TILE_SIZE * 13 + TILE_SIZE/2
 
@@ -1041,7 +1041,7 @@ def reset_game_vars():
     player_score = 0
     p_one_up = 0
     eaten_pellets = 0
-    player_lives = 5
+    player_lives = 3
 
     # Game start variables
     game_start = True

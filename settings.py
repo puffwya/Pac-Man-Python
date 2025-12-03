@@ -32,7 +32,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 player_score = 0
 p_one_up = 0
 eaten_pellets = 0
-player_lives = 1
+player_lives = 3
 
 # Game start variables
 game_start = True
